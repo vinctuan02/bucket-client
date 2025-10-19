@@ -1,0 +1,63 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 95vh;
+  width: 17vw;
+  background-color: #fff;
+  margin: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+  &__logo {
+    display: grid;
+    place-items: center;
+    height: 120px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: "Roboto", sans-serif;
+  }
+
+  &__menu {
+    position: relative;
+
+    &__item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 3rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #555;
+      transition: color 0.3s ease-in-out;
+      cursor: pointer;
+
+      &.active {
+        color: #fff;
+      }
+
+      &__icon {
+        margin-right: 1rem;
+
+        i {
+          font-size: 1.4rem;
+        }
+      }
+    }
+
+    &__indicator {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: calc(100% - 40px);
+      border-radius: 20px;
+      background-color: #0a83fb;
+      z-index: -1;
+      transform: translateX(-50%);
+      transition: 0.3s ease-in-out;
+    }
+  }
+}
+
+.sidebar a {
+  text-decoration: none; 
+}

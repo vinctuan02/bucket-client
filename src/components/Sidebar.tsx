@@ -1,72 +1,83 @@
-// components/Sidebar.tsx
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, IconButton, Divider, Box } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
+"use client";
 
-const drawerWidth = 240;
-const closedWidth = 60;
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import "./Sidebar.scss";
 
-interface SidebarProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-}
+const sidebarNavItems = [
+    {
+        display: "My folder",
+        icon: <i className="bx bx-edit"></i>,
+        to: "/my-folder",
+        section: "my-folder",
+    },
+    {
+        display: "Users",
+        icon: <i className="bx bx-edit"></i>,
+        to: "/users",
+        section: "users",
+    },
+    {
+        display: "App Config",
+        icon: <i className="bx bx-folder-open"></i>,
+        to: "/app-config",
+        section: "app-config",
+    },
 
-export default function Sidebar({ open, setOpen }: SidebarProps) {
+];
+
+export default function Sidebar() {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [stepHeight, setStepHeight] = useState(0);
+    const sidebarRef = useRef<HTMLDivElement>(null);
+    const indicatorRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
+
+    useEffect(() => {
+        // set chiều cao cho indicator
+        setTimeout(() => {
+            const sidebarItem = sidebarRef.current?.querySelector(
+                ".sidebar__menu__item"
+            ) as HTMLElement;
+            if (sidebarItem && indicatorRef.current) {
+                indicatorRef.current.style.height = `${sidebarItem.clientHeight}px`;
+                setStepHeight(sidebarItem.clientHeight);
+            }
+        }, 100);
+    }, []);
+
+    useEffect(() => {
+        const curPath = pathname.split("/")[1];
+        const activeItem = sidebarNavItems.findIndex(
+            (item) => item.section === curPath
+        );
+        setActiveIndex(curPath.length === 0 ? 0 : activeItem);
+    }, [pathname]);
+
     return (
-        <Drawer
-            variant="permanent"
-            open={open}
-            PaperProps={{
-                sx: {
-                    overflowX: 'hidden',
-                    width: open ? drawerWidth : closedWidth,
-                    transition: 'width 0.3s',
-                }
-            }}
-        >
-            {/* Header / Toggle button */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
-                <IconButton onClick={() => setOpen(!open)}>
-                    {open ? <ChevronLeftIcon /> : <MenuIcon />}
-                </IconButton>
-            </Box>
-            <Divider />
-
-            {/* Menu items */}
-            <List>
-                {[
-                    { text: 'Users', icon: <PeopleIcon />, href: '/users' },
-                    { text: 'Settings', icon: <SettingsIcon />, href: '/settings' },
-                ].map((item) => (
-                    <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                        <ListItemButton
-                            component={Link}
-                            href={item.href}
-                            sx={{
-                                minHeight: 48,
-                                justifyContent: open ? 'initial' : 'center',
-                                px: 2.5,
-                            }}
+        <div className="sidebar">
+            <div className="sidebar__logo">CloudBox</div>
+            <div ref={sidebarRef} className="sidebar__menu">
+                <div
+                    ref={indicatorRef}
+                    className="sidebar__menu__indicator"
+                    style={{
+                        transform: `translateX(-50%) translateY(${activeIndex * stepHeight}px)`,
+                    }}
+                ></div>
+                {sidebarNavItems.map((item, index) => (
+                    <Link href={item.to} key={index}>
+                        <div
+                            className={`sidebar__menu__item ${activeIndex === index ? "active" : ""
+                                }`}
                         >
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    mr: open ? 2 : 'auto',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-                        </ListItemButton>
-                    </ListItem>
+                            <div className="sidebar__menu__item__icon">{item.icon}</div>
+                            <div className="sidebar__menu__item__text">{item.display}</div>
+                        </div>
+                    </Link>
                 ))}
-            </List>
-        </Drawer>
+            </div>
+        </div>
     );
 }

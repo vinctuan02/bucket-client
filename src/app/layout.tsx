@@ -1,39 +1,25 @@
-// app/layout.tsx
-'use client';
-import { useState } from 'react';
-import { Box, CssBaseline } from '@mui/material';
-import Sidebar from '../components/Sidebar';
+"use client";
 
-const drawerWidth = 240;
-const closedWidth = 60;
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
-
   return (
-    <html lang="vi">
-      <head>
-        <title>Next.js Sidebar Example</title>
-      </head>
-      <body>
-        <CssBaseline />
-        <Box sx={{ display: 'flex' }}>
-          {/* Sidebar cố định bên trái */}
-          <Sidebar open={open} setOpen={setOpen} />
+    <html lang="en">
+      <body className="flex h-screen bg-[#f0f0f0] text-[#2b2b2b] font-['Roboto',sans-serif]">
+        {/* Sidebar */}
+        <Sidebar />
 
-          {/* Nội dung chính */}
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              p: 3,
-              transition: 'margin 0.3s',
-              ml: open ? `${drawerWidth}px` : `${closedWidth}px`,
-            }}
-          >
+        {/* Khu vực chính */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Header */}
+          <Header />
+
+          {/* Content */}
+          <main className="flex-1 p-6 overflow-auto">
             {children}
-          </Box>
-        </Box>
+          </main>
+        </div>
       </body>
     </html>
   );
