@@ -1,111 +1,74 @@
 "use client";
 
-import { User } from "@/types/type.user";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-type Props = {
-    initial?: Partial<User> & { roleName?: string };
+interface Props {
+    initial?: any;
     onCancel: () => void;
-    onSubmit: (data: { name: string; email: string; roleName?: string }) => Promise<void> | void;
-    submitLabel?: string;
-};
+    onSubmit: (data: { name: string; email: string; roleName?: string }) => void;
+    submitLabel: string;
+}
 
-export default function UserForm({ initial = {}, onCancel, onSubmit, submitLabel = "Save" }: Props) {
-    const [name, setName] = useState(initial.name ?? "");
-    const [email, setEmail] = useState(initial.email ?? "");
-    const [roleName, setRoleName] = useState(initial.roleName ?? "");
-    const [submitting, setSubmitting] = useState(false);
-    const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+export default function UserForm({ initial = {}, onCancel, onSubmit, submitLabel }: Props) {
+    const [form, setForm] = useState({
+        name: initial.name || "",
+        email: initial.email || "",
+        roleName: initial.roleName || "",
+    });
 
-    useEffect(() => {
-        setName(initial.name ?? "");
-        setEmail(initial.email ?? "");
-        setRoleName(initial.roleName ?? "");
-    }, [initial]);
-
-    function validate() {
-        const e: typeof errors = {};
-        if (!name.trim()) e.name = "Name is required";
-        if (!email.trim()) e.email = "Email is required";
-        else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = "Invalid email format";
-        setErrors(e);
-        return Object.keys(e).length === 0;
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    async function handleSubmit(e: React.FormEvent) {
+    function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!validate()) return;
-        setSubmitting(true);
-        try {
-            await onSubmit({
-                name: name.trim(),
-                email: email.trim(),
-                roleName: roleName.trim() || undefined,
-            });
-        } finally {
-            setSubmitting(false);
-        }
+        onSubmit(form);
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 p-4">
-            {/* Name */}
+        <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium">Name</label>
                 <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className={`w-full mt-1 p-2 border rounded ${errors.name ? "border-red-500" : "border-gray-300"
-                        }`}
-                    placeholder="Full name"
-                    disabled={submitting}
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full border rounded px-2 py-1"
                 />
-                {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
             </div>
-
-            {/* Email */}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium">Email</label>
                 <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full mt-1 p-2 border rounded ${errors.email ? "border-red-500" : "border-gray-300"
-                        }`}
-                    placeholder="email@example.com"
-                    disabled={submitting}
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="w-full border rounded px-2 py-1"
                 />
-                {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
             </div>
-
-            {/* Role */}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <label className="block text-sm font-medium">Role</label>
                 <input
-                    value={roleName}
-                    onChange={(e) => setRoleName(e.target.value)}
-                    className="w-full mt-1 p-2 border rounded border-gray-300"
-                    placeholder="e.g. admin, user"
-                    disabled={submitting}
+                    name="roleName"
+                    value={form.roleName}
+                    onChange={handleChange}
+                    className="w-full border rounded px-2 py-1"
                 />
             </div>
 
-            {/* Buttons */}
-            <div className="flex gap-2 pt-2">
-                <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
-                >
-                    {submitting ? "Saving..." : submitLabel}
-                </button>
+            <div className="flex justify-end gap-2 mt-4">
                 <button
                     type="button"
                     onClick={onCancel}
-                    disabled={submitting}
-                    className="px-4 py-2 rounded border border-gray-300"
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
                 >
                     Cancel
+                </button>
+                <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    {submitLabel}
                 </button>
             </div>
         </form>

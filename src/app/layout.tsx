@@ -1,22 +1,18 @@
-"use client";
-
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex h-screen bg-[#f0f0f0] text-[#2b2b2b] font-['Roboto',sans-serif]">
-        {/* Sidebar */}
+      <body className="bg-[#f0f0f0]">
+        {/* Sidebar cố định */}
         <Sidebar />
 
-        {/* Khu vực chính */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Header */}
+        {/* Khối nội dung chính */}
+        <div className="ml-[19vw] p-6 min-h-screen">
           <Header />
-
-          {/* Content */}
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="mt-6 bg-white rounded-xl shadow-sm p-6">
             {children}
           </main>
         </div>

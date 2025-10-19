@@ -1,5 +1,5 @@
 .sidebar {
-  position: fixed;
+ position: fixed;
   top: 0;
   left: 0;
   height: 95vh;
@@ -8,6 +8,7 @@
   margin: 20px;
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 
   &__logo {
     display: grid;
@@ -56,8 +57,9 @@
       transition: 0.3s ease-in-out;
     }
   }
+
+  a {
+    text-decoration: none; 
+  }
 }
 
-.sidebar a {
-  text-decoration: none; 
-}

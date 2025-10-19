@@ -4,8 +4,8 @@ import { Search } from "lucide-react";
 
 export default function Header() {
     return (
-        <header className="h-14 bg-white shadow-sm flex items-center justify-between px-6">
-            {/* Bên trái */}
+        <header className="h-14 bg-white shadow-sm flex items-center justify-between px-6 sticky top-0 z-10">
+
             <div className="flex items-center gap-3">
                 <h1 className="font-semibold text-lg">CloudBox</h1>
                 <div className="flex items-center border rounded px-3 py-1 text-sm text-gray-500">
