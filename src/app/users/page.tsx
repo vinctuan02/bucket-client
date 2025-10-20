@@ -59,7 +59,7 @@ export default function UserPage() {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Users</h1>
+                <h2 className="text-2xl font-bold">Users</h2>
                 <button
                     onClick={() => {
                         setEditingUser(null);
