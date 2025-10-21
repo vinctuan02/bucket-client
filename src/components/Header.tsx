@@ -7,10 +7,10 @@ export default function Header() {
     return (
         <header className="header">
             <div className="header__left">
-                <h1>CloudBox</h1>
+                {/* <h1>CloudBox</h1> */}
                 <div className="header__search">
                     <Search size={16} className="icon" />
-                    <input type="text" placeholder="Search files..." />
+                    <input type="text" placeholder="Search ..." />
                 </div>
             </div>
 

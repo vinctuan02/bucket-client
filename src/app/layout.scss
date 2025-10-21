@@ -3,8 +3,8 @@
   background-color: #f0f0f0;
 
   .layout-main {
-    margin-left: 19vw;
-    width: calc(100% - 19vw);
+    margin-left: 18vw;
+    width: calc(100% - 18vw);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -15,8 +15,8 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      width: calc(100% - 19vw - 40px); 
-      z-index: 1000;
+      width: calc(100% - 18vw - 40px); 
+      z-index: 4;
 
       .header-wrapper {
         background-color: #fff;

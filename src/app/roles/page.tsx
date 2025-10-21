@@ -5,10 +5,9 @@ import UserModal from "@/components/UserModal";
 import api from "@/lib/api";
 import { userApi } from "@/lib/users.api";
 import { User } from "@/types/type.user";
-import "./user.page.scss";
 import UserTable from "@/components/c.User.Table";
 
-export default function UsersPage() {
+export default function RolesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);

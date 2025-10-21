@@ -3,8 +3,13 @@ import api from "./api";
 import { PageDto, ResponseSuccess } from "@/types/type.response";
 
 export const userApi = {
-  getList: (params?: Record<string, any>) =>
-    api.get<ResponseSuccess<PageDto<User>>>("/users", { params }),
+  getList: async ({ params }: { params?: Record<string, any> }) => {
+    const res = await api.get<ResponseSuccess<PageDto<User>>>("/users", {
+      params,
+    });
+
+    return res.data;
+  },
 
   getOne: (id: string) => api.get<ResponseSuccess<User>>(`/users/${id}`),
 

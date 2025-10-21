@@ -21,23 +21,38 @@
     .header__search {
       display: flex;
       align-items: center;
-      background: #fcfcfc;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 4px 8px;
+      background: #f1f3f4;
+      border-radius: 9999px; /* bo tròn hoàn toàn */
+      padding: 6px 12px;
+      transition: all 0.2s ease;
+      width: 220px;
+
+      &:hover {
+        background: #e8eaed;
+      }
+
+      &:focus-within {
+        background: #e8eaed;
+        // box-shadow: 0 0 0 2px #1a73e8; /* hiệu ứng focus xanh giống Google */
+      }
 
       .icon {
-        margin-right: 6px;
-        color: #6b7280;
+        margin-right: 8px;
+        color: #5f6368;
+        transition: color 0.2s ease;
       }
 
       input {
         border: none;
         outline: none;
         background: transparent;
-        width: 160px;
+        width: 100%;
         font-size: 14px;
-        color: #374151;
+        color: #202124;
+
+        &::placeholder {
+          color: #5f6368;
+        }
       }
     }
   }
