@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import UserModal from "@/components/UserModal";
-import api from "@/lib/api";
-import { userApi } from "@/lib/users.api";
+import UserModal from "@/components/modals/UserModal";
 import { User } from "@/types/type.user";
-import UserTable from "@/components/c.User.Table";
+import { userApi } from "@/lib/apis/api.users";
+import api from "@/lib/constants/api.constant";
+import Table from "@/components/tables/c.table";
 
 export default function PermissionsPage() {
     const [users, setUsers] = useState<User[]>([]);
@@ -41,7 +41,7 @@ export default function PermissionsPage() {
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         if (!confirm("Delete this user?")) return;
         try {
             await api.delete(`/users/${id}`);
@@ -79,7 +79,7 @@ export default function PermissionsPage() {
                 </div>
             </div>
 
-            <UserTable data={users} columns={columns} onDelete={handleDelete} />
+            <Table data={users} columns={columns} onDelete={handleDelete} />
 
             {showModal && (
                 <UserModal

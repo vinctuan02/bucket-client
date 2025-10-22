@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
 import "./layout.scss";
 import "./globals.css";
+import Sidebar from "@/components/commons/Sidebar";
+import Header from "@/components/commons/Header";
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

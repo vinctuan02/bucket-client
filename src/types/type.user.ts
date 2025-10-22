@@ -2,12 +2,22 @@
 
 export interface BaseUserUUIDEntity {
   id: string;
-  createdAt: string; // Date → string khi trả về JSON
+  createdAt: string;
   updatedAt: string;
   creatorId: string;
   modifierId: string;
   creator?: User | null;
   modifier?: User | null;
+}
+
+// ===== User =====
+export interface User extends BaseUserUUIDEntity {
+  name: string;
+  email: string;
+  password?: string;
+  creator: User;
+  modifier: User;
+  userRoles?: UserRole[];
 }
 
 // ===== Permission =====
@@ -39,12 +49,4 @@ export interface UserRole extends BaseUserUUIDEntity {
   roleId: string;
   user?: User;
   role?: Role;
-}
-
-// ===== User =====
-export interface User extends BaseUserUUIDEntity {
-  name: string;
-  email: string;
-  password?: string; // thường ẩn khi trả về từ API
-  userRoles?: UserRole[];
 }

@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import UserModal from "@/components/UserModal";
-import api from "@/lib/api";
-import { userApi } from "@/lib/users.api";
+import UserModal from "@/components/modals/UserModal";
 import { User } from "@/types/type.user";
-import "./user.page.scss";
-import UserTable from "@/components/c.User.Table";
+import api from "@/lib/constants/api.constant";
+import { userApi } from "@/lib/apis/api.users";
+import Page from "@/components/pages/c.page";
+import Table from "@/components/tables/c.table";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
-    const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (search?: string) => {
         try {
             const { data } = await userApi.getList({});
             setUsers(data?.items ?? []);
@@ -24,7 +23,7 @@ export default function UsersPage() {
 
     useEffect(() => {
         fetchUsers();
-    }, [search]);
+    }, []);
 
     const handleSave = async (user: {
         name: string;
@@ -42,7 +41,7 @@ export default function UsersPage() {
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         if (!confirm("Delete this user?")) return;
         try {
             await api.delete(`/users/${id}`);
@@ -62,32 +61,19 @@ export default function UsersPage() {
     ];
 
     return (
-        <div className="users-page">
-            <h1 className="title">Users</h1>
-
-            <div className="toolbar">
-                <input
-                    type="text"
-                    placeholder="Search ..."
-                    className="search-input"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="actions">
-                    <button className="btn btn-blue" onClick={() => setShowModal(true)}>
-                        CREATE
-                    </button>
-                </div>
-            </div>
-
-            <UserTable data={users} columns={columns} onDelete={handleDelete} />
+        <Page title="Users" isShowTitle={false}>
+            <Table
+                data={users}
+                columns={columns}
+                onCreate={() => setShowModal(true)}
+                onDelete={handleDelete}
+                onEdit={() => { }}
+                onSearch={(val) => fetchUsers(val)}
+            />
 
             {showModal && (
-                <UserModal
-                    onClose={() => setShowModal(false)}
-                    onSave={handleSave}
-                />
+                <UserModal onClose={() => setShowModal(false)} onSave={handleSave} />
             )}
-        </div>
+        </Page>
     );
 }

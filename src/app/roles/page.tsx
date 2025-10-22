@@ -1,92 +1,78 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import UserModal from "@/components/UserModal";
-import api from "@/lib/api";
-import { userApi } from "@/lib/users.api";
-import { User } from "@/types/type.user";
-import UserTable from "@/components/c.User.Table";
+import { Role } from "@/types/type.user";
+import { rolesApi } from "@/lib/apis/api.roles";
+import api from "@/lib/constants/api.constant";
+import Page from "@/components/pages/c.page";
+import Table from "@/components/tables/c.table";
+import RoleModal from "@/components/modals/modal.role";
 
 export default function RolesPage() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [search, setSearch] = useState("");
+    const [roles, setRoles] = useState<Role[]>([]);
     const [showModal, setShowModal] = useState(false);
 
-    const fetchUsers = async () => {
+    const fetchRoles = async (search?: string) => {
         try {
-            const { data } = await userApi.getList({});
-            setUsers(data?.items ?? []);
+            const { data } = await rolesApi.getList({});
+            setRoles(data?.items ?? []);
         } catch (err) {
-            console.error("Error fetching users:", err);
+            console.error("Error fetching roles:", err);
         }
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, [search]);
+        fetchRoles();
+    }, []);
 
-    const handleSave = async (user: {
+    const handleSave = async (role: {
         name: string;
-        email: string;
-        password: string;
-        role: string;
-        permissions: string;
+        description?: string;
+        permissions?: string[];
     }) => {
         try {
-            await api.post("/users", user);
-            fetchUsers();
+            await api.post("/roles", role);
+            await fetchRoles();
             setShowModal(false);
         } catch (err) {
-            console.error("Error saving user:", err);
+            console.error("Error saving role:", err);
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Delete this user?")) return;
+    const handleDelete = async (id: string) => {
+        if (!confirm("Delete this role?")) return;
         try {
-            await api.delete(`/users/${id}`);
-            fetchUsers();
+            await api.delete(`/roles/${id}`);
+            await fetchRoles();
         } catch (err) {
-            console.error("Error deleting user:", err);
+            console.error("Error deleting role:", err);
         }
     };
 
     const columns = [
         { label: "Name", field: "name" },
-        { label: "Email", field: "email" },
-        { label: "Role", field: "role" },
+        { label: "Description", field: "description" },
         { label: "Creator", field: "creator.name" },
         { label: "Modifier", field: "modifier.name" },
         { label: "Permissions", field: "permissions" },
     ];
 
     return (
-        <div className="users-page">
-            <h1 className="title">Users</h1>
-
-            <div className="toolbar">
-                <input
-                    type="text"
-                    placeholder="Search ..."
-                    className="search-input"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="actions">
-                    <button className="btn btn-blue" onClick={() => setShowModal(true)}>
-                        CREATE
-                    </button>
-                </div>
-            </div>
-
-            <UserTable data={users} columns={columns} onDelete={handleDelete} />
+        <Page title="Roles" isShowTitle={false}>
+            <Table
+                data={roles}
+                columns={columns}
+                onCreate={() => setShowModal(true)}
+                onDelete={handleDelete}
+                onSearch={(val) => fetchRoles(val)}
+            />
 
             {showModal && (
-                <UserModal
+                <RoleModal
                     onClose={() => setShowModal(false)}
                     onSave={handleSave}
                 />
             )}
-        </div>
+        </Page>
     );
 }

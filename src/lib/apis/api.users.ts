@@ -1,6 +1,6 @@
 import { User } from "@/types/type.user";
-import api from "./api";
 import { PageDto, ResponseSuccess } from "@/types/type.response";
+import api from "../constants/api.constant";
 
 export const userApi = {
   getList: async ({ params }: { params?: Record<string, any> }) => {
