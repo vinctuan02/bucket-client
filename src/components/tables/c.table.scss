@@ -1,9 +1,6 @@
 .table-wrapper {
   background: #fff;
-  // border-radius: 12px;
-  // padding-top: 10px;
   width: 100%;
-  overflow-x: auto;
 
   .toolbar {
     display: flex;
@@ -18,12 +15,6 @@
       border-radius: 10px;
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-
-      &:focus {
-        // border-color: #4285f4;
-        // box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
-      }
     }
 
     .actions {
@@ -42,28 +33,30 @@
 
         &.btn-blue {
           background-color: #4285f4;
-
           &:hover {
             background-color: #3367d6;
-          }
-        }
-
-        &.btn-green {
-          background-color: #34a853;
-
-          &:hover {
-            background-color: #0c8e40;
           }
         }
       }
     }
   }
 
+  .table-container {
+    max-height: 73vh;
+    overflow-y: auto;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px;
 
     thead {
+      position: sticky;
+      top: 0;
+      background-color: #f9fafb;
+      z-index: 1;
+
       th {
         text-align: left;
         padding: 12px;
@@ -72,7 +65,6 @@
         color: #374151;
         border-bottom: 1px solid #e5e7eb;
 
-        // căn giữa riêng cho cột Actions
         &:last-child {
           text-align: center;
         }
@@ -102,23 +94,19 @@
     .table__actions {
       display: flex;
       justify-content: center;
-      align-items: center; 
+      align-items: center;
       gap: 8px;
 
       .icon-btn {
         border: none;
         background: none;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         padding: 6px;
         border-radius: 6px;
         transition: background-color 0.2s ease;
 
         &.edit {
           color: #2563eb;
-
           &:hover {
             background-color: rgba(37, 99, 235, 0.1);
           }
@@ -126,7 +114,6 @@
 
         &.delete {
           color: #dc2626;
-
           &:hover {
             background-color: rgba(220, 38, 38, 0.1);
           }
@@ -135,10 +122,70 @@
     }
   }
 
-  .no-data {
-    text-align: center;
-    padding: 20px;
-    color: #6b7280;
-    font-size: 14px;
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 5px;
+    padding: 12px 0;
+
+    .pagination-info {
+      font-size: 13px;
+      color: #4b4b4b;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .page-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 0 8px;
+        border: 1px solid #e5e7eb;
+        background-color: #fff;
+        color: #374151;
+        font-size: 13px;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover:not(:disabled):not(.dots) {
+          background-color: #f3f4f6;
+          border-color: #d1d5db;
+        }
+
+        &.active {
+          background-color: #4285f4;
+          color: white;
+          border-color: #4285f4;
+          font-weight: 600;
+
+          &:hover {
+            background-color: #3367d6;
+          }
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        &.dots {
+          border: none;
+          background: none;
+          cursor: default;
+
+          &:hover {
+            background: none;
+          }
+        }
+      }
+    }
   }
 }

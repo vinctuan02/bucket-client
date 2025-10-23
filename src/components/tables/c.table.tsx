@@ -1,112 +1,206 @@
 "use client";
 
 import React, { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import "./c.table.scss";
 
 interface Column {
-  label: string;
-  field: string;
+    label: string;
+    field: string;
+}
+
+interface PaginationInfo {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
 }
 
 interface TableProps<T> {
-  data: T[];
-  columns: Column[];
-  onEdit?: (row: T) => void;
-  onDelete?: (id: string) => void;
-  onCreate?: () => void;
-  onSearch?: (value: string) => void;
+    data: T[];
+    columns: Column[];
+    onEdit?: (row: T) => void;
+    onDelete?: (id: string) => void;
+    onCreate?: () => void;
+    onSearch?: (value: string) => void;
+    pagination?: PaginationInfo;
+    onPageChange?: (page: number) => void;
 }
 
 export default function Table<T extends { id?: number | string }>({
-  data,
-  columns,
-  onEdit,
-  onDelete,
-  onCreate,
-  onSearch,
+    data,
+    columns,
+    onEdit,
+    onDelete,
+    onCreate,
+    onSearch,
+    pagination,
+    onPageChange,
 }: TableProps<T>) {
-  const [search, setSearch] = useState("");
+    const [search, setSearch] = useState("");
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearch(value);
-    onSearch?.(value);
-  };
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearch(value);
+        onSearch?.(value);
+    };
 
-  return (
-    <div className="table-wrapper">
-      {/* Toolbar */}
-      <div className="toolbar">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="search-input"
-          value={search}
-          onChange={handleSearchChange}
-        />
-        {onCreate && (
-          <div className="actions">
-            <button className="btn btn-blue" onClick={onCreate}>
-              CREATE
-            </button>
-          </div>
-        )}
-      </div>
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= (pagination?.totalPages || 1)) {
+            onPageChange?.(page);
+        }
+    };
 
-      {/* Table */}
-      <table className="custom-table">
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th key={col.field}>{col.label}</th>
-            ))}
-            {(onEdit || onDelete) && <th>Actions</th>}
-          </tr>
-        </thead>
+    const renderPageNumbers = () => {
+        if (!pagination) return null;
 
-        <tbody>
-          {data?.length ? (
-            data.map((row: any) => (
-              <tr key={row.id}>
-                {columns.map((col) => {
-                  const value = col.field
-                    .split(".")
-                    .reduce((acc, key) => acc?.[key], row);
-                  return <td key={col.field}>{value ?? "-"}</td>;
-                })}
+        const { currentPage, totalPages } = pagination;
+        const pages: (number | string)[] = [];
 
-                {(onEdit || onDelete) && (
-                  <td className="table__actions">
-                    {onEdit && (
-                      <button
-                        className="icon-btn edit"
-                        onClick={() => onEdit(row)}
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        className="icon-btn delete"
-                        onClick={() => onDelete(row.id!)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            pages.push(1);
+
+            if (currentPage > 3) {
+                pages.push("...");
+            }
+
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+
+            for (let i = start; i <= end; i++) {
+                pages.push(i);
+            }
+
+            if (currentPage < totalPages - 2) {
+                pages.push("...");
+            }
+
+            pages.push(totalPages);
+        }
+
+        return pages;
+    };
+
+    return (
+        <div className="table-wrapper">
+            {/* Toolbar */}
+            <div className="toolbar">
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    className="search-input"
+                    value={search}
+                    onChange={handleSearchChange}
+                />
+                {onCreate && (
+                    <div className="actions">
+                        <button className="btn btn-blue" onClick={onCreate}>
+                            CREATE
+                        </button>
+                    </div>
                 )}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={columns.length + 1} style={{ textAlign: "center" }}>
-                No data
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
+            </div>
+
+            {/* Table with sticky header */}
+            <div className="table-container">
+                <table className="custom-table">
+                    <thead>
+                        <tr>
+                            {columns.map((col) => (
+                                <th key={col.field}>{col.label}</th>
+                            ))}
+                            {(onEdit || onDelete) && <th>Actions</th>}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {data?.length ? (
+                            data.map((row: any) => (
+                                <tr key={row.id}>
+                                    {columns.map((col) => {
+                                        const value = col.field
+                                            .split(".")
+                                            .reduce((acc, key) => acc?.[key], row);
+                                        return <td key={col.field}>{value ?? "-"}</td>;
+                                    })}
+
+                                    {(onEdit || onDelete) && (
+                                        <td className="table__actions">
+                                            {onEdit && (
+                                                <button
+                                                    className="icon-btn edit"
+                                                    onClick={() => onEdit(row)}
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                            )}
+                                            {onDelete && (
+                                                <button
+                                                    className="icon-btn delete"
+                                                    onClick={() => onDelete(row.id!)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={columns.length + 1} style={{ textAlign: "center" }}>
+                                    No data
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {pagination && (
+                <div className="pagination">
+                    <div className="pagination-info">
+                        {`${(pagination.currentPage - 1) * pagination.itemsPerPage + 1}-${Math.min(
+                            pagination.currentPage * pagination.itemsPerPage,
+                            pagination.totalItems
+                        )} / ${pagination.totalItems}`}
+                    </div>
+
+                    <div className="pagination-controls">
+                        <button
+                            className="page-btn"
+                            onClick={() => handlePageChange(pagination.currentPage - 1)}
+                            disabled={pagination.currentPage === 1}
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+
+                        {renderPageNumbers()?.map((page, index) => (
+                            <button
+                                key={index}
+                                className={`page-btn ${page === pagination.currentPage ? "active" : ""
+                                    } ${page === "..." ? "dots" : ""}`}
+                                onClick={() => typeof page === "number" && handlePageChange(page)}
+                                disabled={page === "..."}
+                            >
+                                {page}
+                            </button>
+                        ))}
+
+                        <button
+                            className="page-btn"
+                            onClick={() => handlePageChange(pagination.currentPage + 1)}
+                            disabled={pagination.currentPage === pagination.totalPages}
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
