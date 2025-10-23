@@ -1,4 +1,5 @@
 // src/types/response.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ResponseSuccess<T = any> {
   statusCode: number;

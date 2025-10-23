@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import "./layout.scss";
 import "./globals.css";
-import Sidebar from "@/components/commons/Sidebar";
-import Header from "@/components/commons/Header";
+import Sidebar from "@/components/commons/c.sidebar";
+import Header from "@/components/commons/c.header";
 
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
