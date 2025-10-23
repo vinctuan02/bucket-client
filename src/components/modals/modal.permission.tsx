@@ -1,53 +1,123 @@
 "use client";
 
 import { useState } from "react";
+import "./modal.scss";
+import "./modal.permission.scss"
+import { PermissionAction } from "@/enums/enum";
 
 interface PermissionModalProps {
     onClose: () => void;
-    onSave: (data: { action: string; resource: string }) => void;
-    initialData?: { action: string; resource: string };
+    onSave: (data: {
+        name: string;
+        description: string;
+        action: string;
+        resource: string;
+    }) => void;
+    initialData?: {
+        name: string;
+        description: string;
+        action: string;
+        resource: string;
+    };
 }
 
 export default function PermissionModal({ onClose, onSave, initialData }: PermissionModalProps) {
-    const [action, setAction] = useState(initialData?.action ?? "");
-    const [resource, setResource] = useState(initialData?.resource ?? "");
+    const [form, setForm] = useState({
+        name: initialData?.name ?? "",
+        description: initialData?.description ?? "",
+        action: initialData?.action ?? "",
+        resource: initialData?.resource ?? "",
+    });
+
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = () => {
-        if (!action.trim() || !resource.trim()) {
-            alert("Please fill in all fields");
+        const { name, description, action, resource } = form;
+
+        if (!name.trim() || !action.trim() || !resource.trim()) {
+            alert("Please fill in all required fields.");
             return;
         }
-        onSave({ action, resource });
+
+        onSave({ name, description, action, resource });
+    };
+
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) onClose();
     };
 
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={handleOverlayClick}>
             <div className="modal">
-                <h2>{initialData ? "Edit Permission" : "Create Permission"}</h2>
+                <h2 className="modal__title">
+                    {initialData ? "Edit Permission" : "Create Permission"}
+                </h2>
 
-                <div className="modal-body">
-                    <label>Action</label>
-                    <input
-                        type="text"
-                        value={action}
-                        onChange={(e) => setAction(e.target.value)}
-                        placeholder="e.g. create, read, update..."
-                    />
+                {/* First Row: Name + Resource */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Name</label>
+                        <input
+                            name="name"
+                            type="text"
+                            value={form.name}
+                            onChange={handleChange}
+                            placeholder="Enter permission name"
+                        />
+                    </div>
 
-                    <label>Resource</label>
-                    <input
-                        type="text"
-                        value={resource}
-                        onChange={(e) => setResource(e.target.value)}
-                        placeholder="e.g. users, roles, settings..."
-                    />
+                    <div className="form-group">
+                        <label>Resource</label>
+                        <input
+                            name="resource"
+                            type="text"
+                            value={form.resource}
+                            onChange={handleChange}
+                            placeholder="e.g. user, role, order..."
+                        />
+                    </div>
                 </div>
 
-                <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>
+                {/* Second Row: Action + Description */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Action</label>
+                        <select
+                            name="action"
+                            value={form.action}
+                            onChange={handleChange}
+                        >
+                            <option value="">Select action</option>
+                            {Object.values(PermissionAction).map((action) => (
+                                <option key={action} value={action}>
+                                    {action.charAt(0).toUpperCase() + action.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Description</label>
+                        <input
+                            name="description"
+                            type="text"
+                            value={form.description}
+                            onChange={handleChange}
+                            placeholder="Enter description (optional)"
+                        />
+                    </div>
+                </div>
+
+                <div className="modal__actions">
+                    <button className="btn btn-cancel" onClick={onClose}>
                         Cancel
                     </button>
-                    <button className="btn btn-primary" onClick={handleSubmit}>
+                    <button className="btn btn-blue" onClick={handleSubmit}>
                         Save
                     </button>
                 </div>

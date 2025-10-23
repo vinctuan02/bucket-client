@@ -4,9 +4,9 @@
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
-  align-items: flex-start; // 🟢 không canh giữa dọc nữa
-  padding-top: 20vh; // 🟢 đẩy modal xuống 1 chút để cân hơn
-  overflow-y: auto; // 🟢 nếu modal cao thì cuộn được
+  align-items: flex-start; // không canh giữa dọc nữa
+  padding-top: 20vh; // đẩy modal xuống 1 chút để cân hơn
+  overflow-y: auto; // nếu modal cao thì cuộn được
   z-index: 50;
 }
 
