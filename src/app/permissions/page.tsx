@@ -5,56 +5,43 @@ import api from "@/lib/constants/api.constant";
 import Page from "@/components/pages/c.page";
 import Table from "@/components/tables/c.table";
 import { Permission } from "@/types/type.user";
-import { permissionApi } from "@/lib/apis/api.permissons";
 import PermissionModal from "@/components/modals/modal.permission";
+import { permissionApi } from "@/modules/permissions/permission.api";
+import { GetListPermissionDto } from "@/modules/permissions/permission.class";
+import { columnsTable } from "@/modules/permissions/permission.constant";
 
 export default function PermissionsPage() {
     const [permissions, setPermissions] = useState<Permission[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [metadata, setMetadata] = useState({
-        currentPage: 1,
-        pageSize: 20,
-        totalItems: 0,
-        totalPages: 1,
-    });
-    const [searchQuery, setSearchQuery] = useState("");
 
-    const fetchPermissions = async (search?: string, page: number = 1) => {
+    const [permissionQuery, setPermissionQuery] = useState<GetListPermissionDto>(
+        new GetListPermissionDto()
+    );
+
+    const fetchPermissions = async (params?: GetListPermissionDto) => {
         try {
-            const params: any = {
-                page,
-                pageSize: metadata.pageSize,
-            };
-
-            if (search) {
-                params.search = search;
-            }
-
             const response = await permissionApi.getList(params);
-
             setPermissions(response.data?.items ?? []);
-            setMetadata(response.data?.metadata ?? {
-                currentPage: 1,
-                pageSize: 20,
-                totalItems: 0,
-                totalPages: 1,
-            });
         } catch (err) {
             console.error("Error fetching permissions:", err);
         }
     };
 
     useEffect(() => {
-        fetchPermissions(searchQuery, currentPage);
-    }, [currentPage]);
+        const delayDebounce = setTimeout(() => {
+            fetchPermissions(permissionQuery);
+        }, 1000 / 2);
+
+        return () => clearTimeout(delayDebounce);
+    }, [permissionQuery.keywords, permissionQuery.page, permissionQuery.pageSize]);
+
 
     const handleSave = async (permission: { action: string; resource: string }) => {
         try {
             await api.post("/permissions", permission);
-            setCurrentPage(1);
-            fetchPermissions(searchQuery, 1);
-            setShowModal(false);
+            // setCurrentPage(1);
+            // fetchPermissions();
+            // setShowModal(false);
         } catch (err) {
             console.error("Error saving permission:", err);
         }
@@ -64,44 +51,35 @@ export default function PermissionsPage() {
         if (!confirm("Delete this permission?")) return;
         try {
             await api.delete(`/permissions/${id}`);
-            fetchPermissions(searchQuery, currentPage);
+            fetchPermissions();
         } catch (err) {
             console.error("Error deleting permission:", err);
         }
     };
 
     const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        setCurrentPage(1);
-        fetchPermissions(value, 1);
+        setPermissionQuery(prev =>
+            Object.assign(new GetListPermissionDto(), prev, { keywords: value })
+        );
     };
+
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+        // setCurrentPage(page);
     };
 
-    const columns = [
-        { label: "Name", field: "name" },
-        { label: "Action", field: "action" },
-        { label: "Resource", field: "resource" },
-        { label: "Description", field: "description" },
-    ];
+
 
     return (
         <Page title="Permissions" isShowTitle={false}>
             <Table
                 data={permissions}
-                columns={columns}
+                columns={columnsTable}
                 onCreate={() => setShowModal(true)}
                 onDelete={handleDelete}
                 onEdit={() => { }}
                 onSearch={handleSearch}
-                pagination={{
-                    currentPage: metadata.currentPage,
-                    totalPages: metadata.totalPages,
-                    totalItems: metadata.totalItems,
-                    itemsPerPage: metadata.pageSize,
-                }}
+                // pagination={ }
                 onPageChange={handlePageChange}
             />
 

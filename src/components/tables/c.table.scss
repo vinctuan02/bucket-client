@@ -141,10 +141,11 @@
       gap: 4px;
 
       .page-btn {
-        min-width: 28px;
-        height: 28px;
+        min-width: 25px;
+        height: 25px;
         padding: 0 8px;
-        border: 1px solid #e5e7eb;
+        // border: 1px solid #e5e7eb;
+        border: none;
         background-color: #fff;
         color: #374151;
         font-size: 13px;
@@ -158,12 +159,14 @@
         &:hover:not(:disabled):not(.dots) {
           background-color: #f3f4f6;
           border-color: #d1d5db;
+          
         }
 
         &.active {
-          background-color: #4285f4;
-          color: white;
-          border-color: #4285f4;
+           border: 1px solid #e5e7eb;
+          // background-color: #4285f4;
+          // color: white;
+          // border-color: #4285f4;
           font-weight: 600;
 
           &:hover {
