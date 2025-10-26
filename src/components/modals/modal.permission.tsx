@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import "./modal.scss";
 import "./modal.permission.scss";
 import { PermissionAction } from "@/enums/enum";
+import { permissionDefault } from "@/modules/permissions/permission.constant";
+import { Permission } from "@/types/type.user";
 
 interface PermissionModalProps {
     onClose: () => void;
@@ -14,22 +16,10 @@ interface PermissionModalProps {
         action: string;
         resource: string;
     }) => void;
-    initialData?: {
-        id?: string;
-        name: string;
-        description: string;
-        action: string;
-        resource: string;
-    };
+    initialData?: Partial<Permission>;
 }
 
-export default function PermissionModal({ onClose, onSave, initialData = {
-    id: "",
-    name: "",
-    description: "",
-    action: "",
-    resource: "",
-} }: PermissionModalProps) {
+export default function PermissionModal({ onClose, onSave, initialData = permissionDefault }: PermissionModalProps) {
     const [form, setForm] = useState(initialData);
 
     useEffect(() => {
@@ -44,12 +34,12 @@ export default function PermissionModal({ onClose, onSave, initialData = {
     const handleSubmit = () => {
         const { name, description, action, resource, id } = form;
 
-        if (!name.trim() || !action.trim() || !resource.trim()) {
+        if (name?.trim() || action?.trim() || resource?.trim()) {
             alert("Please fill in all required fields.");
             return;
         }
 
-        onSave({ id, name, description, action, resource });
+        onSave({ id, name: name ?? '', description: description ?? '', action: action ?? '', resource: resource ?? '' });
     };
 
     const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {

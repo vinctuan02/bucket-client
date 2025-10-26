@@ -5,13 +5,15 @@
   display: flex;
   justify-content: center;
   align-items: flex-start; // không canh giữa dọc nữa
-  padding-top: 20vh; // đẩy modal xuống 1 chút để cân hơn
+  padding-top: 5vh; // đẩy modal xuống 1 chút để cân hơn
   overflow-y: auto; // nếu modal cao thì cuộn được
   z-index: 50;
 }
 
 .modal {
   width: 70%;
+  max-height: 90vh;
+  overflow-y: auto;
   background: #fff;
   border-radius: 16px;
   padding: 32px;

@@ -16,7 +16,7 @@ export default function Page({
 }: PageWrapperProps) {
     return (
         <div className="page-wrapper">
-            {isShowTitle && <h1 className="page-title">{title}</h1>}
+            {isShowTitle && <a className="page-title">{title}</a>}
             <div className="page-content">{children}</div>
         </div>
     );

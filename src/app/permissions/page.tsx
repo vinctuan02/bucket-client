@@ -8,15 +8,15 @@ import { Permission } from "@/types/type.user";
 import PermissionModal from "@/components/modals/modal.permission";
 import { permissionApi } from "@/modules/permissions/permission.api";
 import { GetListPermissionDto } from "@/modules/permissions/permission.dto";
-import { columnsTable } from "@/modules/permissions/permission.constant";
 import { OrderDirection } from "@/modules/commons/common.enum";
 import { PermissionFieldMapping } from "@/modules/permissions/permisson.enum";
 import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { permissionConfigsColumnTable, permissionDefault } from "@/modules/permissions/permission.constant";
 
 export default function PermissionsPage() {
     const [permissions, setPermissions] = useState<Permission[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [editingPermission, setEditingPermission] = useState<Permission>();
+    const [editingPermission, setEditingPermission] = useState<Partial<Permission>>(permissionDefault);
     const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
 
     const [permissionQuery, setPermissionQuery] = useState<GetListPermissionDto>(
@@ -108,7 +108,7 @@ export default function PermissionsPage() {
         <Page title="Permissions" isShowTitle={false}>
             <Table
                 data={permissions}
-                columns={columnsTable}
+                columns={permissionConfigsColumnTable}
                 onCreate={() => setShowModal(true)}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
@@ -121,7 +121,10 @@ export default function PermissionsPage() {
             {showModal && (
                 <PermissionModal
                     initialData={editingPermission}
-                    onClose={() => setShowModal(false)}
+                    onClose={() => {
+                        setShowModal(false);
+                        setEditingPermission(permissionDefault);
+                    }}
                     onSave={handleSave}
                 />
             )}

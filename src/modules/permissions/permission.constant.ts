@@ -1,7 +1,8 @@
+import { Permission } from "@/types/type.user";
 import { IConfigTableColumn } from "../commons/common.interface";
 import { PermissionFieldMapping } from "./permisson.enum";
 
-export const columnsTable: IConfigTableColumn[] = [
+export const permissionConfigsColumnTable: IConfigTableColumn[] = [
   {
     label: "Name",
     field: "name",
@@ -39,3 +40,11 @@ export const columnsTable: IConfigTableColumn[] = [
     width: 10,
   },
 ];
+
+export const permissionDefault: Partial<Permission> = {
+  id: "",
+  name: "",
+  description: "",
+  action: "",
+  resource: "",
+};

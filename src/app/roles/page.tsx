@@ -63,6 +63,7 @@ export default function RolesPage() {
       }
       fetchRoles(roleQuery);
       setShowModal(false);
+      setEditingRole(roleDefault)
     } catch (err) {
       console.error("Error saving role:", err);
     }
@@ -114,7 +115,11 @@ export default function RolesPage() {
       {showModal && (
         <RoleModal
           initialData={editingRole}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false);
+            setEditingRole(roleDefault);
+          }}
+
           onSave={handleSave}
         />
       )}

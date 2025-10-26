@@ -8,6 +8,18 @@ export const rolesConifgsColumnTable: IConfigTableColumn[] = [
     label: "Description",
     orderField: RoleFieldMapping.DESCRIPTION,
   },
+  {
+    label: "Created At",
+    field: "createdAt",
+    orderField: RoleFieldMapping.CREATED_AT,
+    width: 10,
+  },
+  {
+    label: "Updated At",
+    field: "updatedAt",
+    orderField: RoleFieldMapping.UPDATED_AT,
+    width: 10,
+  },
 ];
 
 export const roleDefault = {
