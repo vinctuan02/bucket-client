@@ -1,20 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import "./c.table.scss";
-
-interface Column {
-    label: string;
-    field: string;
-}
-
-interface PaginationInfo {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-}
+import { OrderDirection } from "@/modules/commons/common.enum";
+import { Column, PaginationInfo } from "@/modules/commons/common.interface";
 
 interface TableProps<T> {
     data: T[];
@@ -25,6 +15,7 @@ interface TableProps<T> {
     onSearch?: (value: string) => void;
     pagination?: PaginationInfo;
     onPageChange?: (page: number) => void;
+    onSortChange?: (field: string, direction: OrderDirection) => void;
 }
 
 export default function Table<T extends { id?: number | string }>({
@@ -36,53 +27,59 @@ export default function Table<T extends { id?: number | string }>({
     onSearch,
     pagination,
     onPageChange,
+    onSortChange,
 }: TableProps<T>) {
     const [search, setSearch] = useState("");
+    const [fieldOrder, setFieldOrder] = useState("");
+    const [orderDirection, setOrderDirection] = useState<OrderDirection>(OrderDirection.ASC);
 
+    // search
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearch(value);
         onSearch?.(value);
     };
 
+    // pagination
     const handlePageChange = (page: number) => {
         if (page >= 1 && page <= (pagination?.totalPages || 1)) {
             onPageChange?.(page);
         }
     };
 
+    // render số trang
     const renderPageNumbers = () => {
         if (!pagination) return null;
-
         const { currentPage, totalPages } = pagination;
         const pages: (number | string)[] = [];
 
         if (totalPages <= 7) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i);
-            }
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
             pages.push(1);
-
-            if (currentPage > 3) {
-                pages.push("...");
-            }
-
+            if (currentPage > 3) pages.push("...");
             const start = Math.max(2, currentPage - 1);
             const end = Math.min(totalPages - 1, currentPage + 1);
-
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-
-            if (currentPage < totalPages - 2) {
-                pages.push("...");
-            }
-
+            for (let i = start; i <= end; i++) pages.push(i);
+            if (currentPage < totalPages - 2) pages.push("...");
             pages.push(totalPages);
         }
 
         return pages;
+    };
+
+    // sort toggle
+    const handleSort = (col: Column) => {
+        if (!col.orderField) return;
+
+        let newDirection =
+            fieldOrder === col.orderField && orderDirection === OrderDirection.ASC
+                ? OrderDirection.DESC
+                : OrderDirection.ASC;
+
+        setFieldOrder(col.orderField);
+        setOrderDirection(newDirection);
+        onSortChange?.(col.orderField, newDirection);
     };
 
     return (
@@ -105,15 +102,36 @@ export default function Table<T extends { id?: number | string }>({
                 )}
             </div>
 
-            {/* Table with sticky header */}
+            {/* Table */}
             <div className="table-container">
                 <table className="custom-table">
                     <thead>
                         <tr>
                             {columns.map((col) => (
-                                <th key={col.field}>{col.label}</th>
+                                <th
+                                    key={col.field}
+                                    onClick={() => handleSort(col)}
+                                    className={col.orderField ? "sortable" : ""}
+                                >
+                                    <div className="th-content">
+                                        <span>{col.label}</span>
+                                        {col.orderField && (
+                                            <>
+                                                {fieldOrder === col.orderField ? (
+                                                    orderDirection === OrderDirection.ASC ? (
+                                                        <ArrowUp size={14} />
+                                                    ) : (
+                                                        <ArrowDown size={14} />
+                                                    )
+                                                ) : (
+                                                    <ArrowUpDown size={14} />
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                </th>
                             ))}
-                            {(onEdit || onDelete) && <th>Actions</th>}
+                            {(onEdit || onDelete) && <th></th>}
                         </tr>
                     </thead>
 
@@ -161,6 +179,7 @@ export default function Table<T extends { id?: number | string }>({
                 </table>
             </div>
 
+            {/* Pagination */}
             {pagination && (
                 <div className="pagination">
                     <div className="pagination-info">

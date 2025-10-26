@@ -22,8 +22,10 @@ export interface User extends BaseUserUUIDEntity {
 
 // ===== Permission =====
 export interface Permission extends BaseUserUUIDEntity {
+  name: string;
   action: string;
   resource: string;
+  description: string;
   rolePermissions?: RolePermission[];
 }
 

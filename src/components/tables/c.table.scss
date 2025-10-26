@@ -71,6 +71,21 @@
       }
     }
 
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+
+      .th-content {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      &:hover {
+        // color: #173c74;
+      }
+    }
+
     tbody {
       tr {
         &:hover {

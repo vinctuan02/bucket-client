@@ -1,12 +1,14 @@
 import api from "@/lib/constants/api.constant";
 import { PageDto, ResponseSuccess } from "@/types/type.response";
 import { Permission } from "@/types/type.user";
-import { GetListPermissionDto } from "./permission.class";
+import { GetListPermissionDto } from "./permission.dto";
+
+const BASE_URL = "/permissions";
 
 export const permissionApi = {
   getList: async (params?: GetListPermissionDto) => {
     const res = await api.get<ResponseSuccess<PageDto<Permission>>>(
-      "/permissions",
+      `${BASE_URL}`,
       {
         params,
       }
@@ -15,13 +17,12 @@ export const permissionApi = {
     return res.data;
   },
 
-  getOne: (id: string) => api.get(`/permissions/${id}`),
+  getOne: (id: string) => api.get(`${BASE_URL}/${id}`),
 
-  create: (data: { action: string; resource: string }) =>
-    api.post("/permissions", data),
+  create: (data: Partial<Permission>) => api.post(`${BASE_URL}`, data),
 
-  update: (id: string, data: Partial<{ action: string; resource: string }>) =>
-    api.patch(`/permissions/${id}`, data),
+  update: (id: string, data: Partial<Permission>) =>
+    api.patch(`${BASE_URL}/${id}`, data),
 
-  delete: (id: string) => api.delete(`/permissions/${id}`),
+  delete: (id: string) => api.delete(`${BASE_URL}/${id}`),
 };
