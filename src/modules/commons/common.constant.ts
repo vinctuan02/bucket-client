@@ -24,3 +24,10 @@ export const DEFAULT_LENGTH_DESCRIPTION = 500;
 export const DEFAULT_LENGTH_COLOR = 10;
 
 export const DEFAULT_SENSITIVE_KEYS = ["password"];
+
+export const PAGINATION_DEFAULT = {
+  currentPage: 1,
+  totalPages: 1,
+  totalItems: 0,
+  itemsPerPage: 20,
+};

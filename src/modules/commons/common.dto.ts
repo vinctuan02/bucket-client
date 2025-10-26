@@ -2,7 +2,7 @@ import { FILED_ORDER_DEFAULT } from "./common.constant";
 import { OrderDirection } from "./common.enum";
 
 export abstract class BaseQueryDto {
-  keywords?: string[];
+  keywords?: string;
   page: number = 1;
   pageSize: number = 20;
   fieldOrder: string = FILED_ORDER_DEFAULT;

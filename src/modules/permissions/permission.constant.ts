@@ -1,6 +1,7 @@
+import { IConfigTableColumn } from "../commons/common.interface";
 import { PermissionFieldMapping } from "./permisson.enum";
 
-export const columnsTable = [
+export const columnsTable: IConfigTableColumn[] = [
   {
     label: "Name",
     field: "name",

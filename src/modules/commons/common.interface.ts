@@ -1,7 +1,8 @@
-export interface Column {
+export interface IConfigTableColumn {
   label: string;
   field: string;
   orderField?: string;
+  width?: number;
 }
 
 export interface PaginationInfo {

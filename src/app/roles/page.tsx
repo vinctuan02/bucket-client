@@ -1,74 +1,122 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Role } from "@/types/type.user";
-import { rolesApi } from "@/lib/apis/api.roles";
-import api from "@/lib/constants/api.constant";
 import Page from "@/components/pages/c.page";
 import Table from "@/components/tables/c.table";
 import RoleModal from "@/components/modals/modal.role";
+import { GetListRoleDto, RolePermission } from "@/modules/roles/role.dto";
+import { OrderDirection } from "@/modules/commons/common.enum";
+import { RoleFieldMapping } from "@/modules/roles/role.enum";
+import { Role } from "@/types/type.user";
+import { rolesApi } from "@/modules/roles/role.api";
+import { roleDefault, rolesConifgsColumnTable } from "@/modules/roles/role.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingRole, setEditingRole] = useState<Partial<Role>>(roleDefault);
+  const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
 
-  const fetchRoles = async (search?: string) => {
+  const [roleQuery, setRoleQuery] = useState<GetListRoleDto>(
+    new GetListRoleDto({ fieldOrder: RoleFieldMapping.NAME })
+  );
+
+  const fetchRoles = async (params?: GetListRoleDto) => {
     try {
-      const { data } = await rolesApi.getList({});
+      const { data } = await rolesApi.getList(params);
       setRoles(data?.items ?? []);
+      if (data?.metadata) {
+        setPagination({
+          currentPage: data.metadata.currentPage,
+          totalPages: data.metadata.totalPages,
+          totalItems: data.metadata.totalItems,
+          itemsPerPage: data.metadata.pageSize,
+        });
+      }
     } catch (err) {
       console.error("Error fetching roles:", err);
     }
   };
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    const delayDebounce = setTimeout(() => {
+      fetchRoles(roleQuery);
+    }, 250);
 
-  const handleSave = async (role: {
-    name: string;
-    description?: string;
-    permissions?: string[];
-  }) => {
+    return () => clearTimeout(delayDebounce);
+  }, [
+    roleQuery.keywords,
+    roleQuery.page,
+    roleQuery.pageSize,
+    roleQuery.orderBy,
+    roleQuery.fieldOrder,
+  ]);
+
+  const handleSave = async (role: { id?: string; name: string; description: string; rolePermissions: RolePermission[]; }) => {
     try {
-      await api.post("/roles", role);
-      await fetchRoles();
+      const { id, ...rest } = role;
+      if (id) {
+        await rolesApi.update(id, rest);
+      } else {
+        await rolesApi.create(rest);
+      }
+      fetchRoles(roleQuery);
       setShowModal(false);
     } catch (err) {
       console.error("Error saving role:", err);
     }
   };
 
+  const handleEdit = (role: Role) => {
+    setEditingRole(role);
+    setShowModal(true);
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this role?")) return;
     try {
-      await api.delete(`/roles/${id}`);
-      await fetchRoles();
+      await rolesApi.delete(id);
+      fetchRoles();
     } catch (err) {
       console.error("Error deleting role:", err);
     }
   };
 
-  const columns = [
-    { label: "Name", field: "name" },
-    { label: "Description", field: "description" },
-    { label: "Creator", field: "creator.name" },
-    { label: "Modifier", field: "modifier.name" },
-    { label: "Permissions", field: "permissions" },
-  ];
+  const handleSearch = (value: string) => {
+    setRoleQuery(prev => new GetListRoleDto({ ...prev, keywords: value }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setRoleQuery(prev => new GetListRoleDto({ ...prev, page }));
+  };
+
+  const handleSortChange = (field: string, direction: OrderDirection) => {
+    setRoleQuery(prev =>
+      new GetListRoleDto({ ...prev, fieldOrder: field, orderBy: direction })
+    );
+  };
 
   return (
     <Page title="Roles" isShowTitle={false}>
       <Table
         data={roles}
-        columns={columns}
+        columns={rolesConifgsColumnTable}
         onCreate={() => setShowModal(true)}
         onDelete={handleDelete}
-        onSearch={(val) => fetchRoles(val)}
+        onEdit={handleEdit}
+        onSearch={handleSearch}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onSortChange={handleSortChange}
       />
 
       {showModal && (
-        <RoleModal onClose={() => setShowModal(false)} onSave={handleSave} />
+        <RoleModal
+          initialData={editingRole}
+          onClose={() => setShowModal(false)}
+          onSave={handleSave}
+        />
       )}
     </Page>
   );

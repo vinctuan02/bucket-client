@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import "./c.table.scss";
 import { OrderDirection } from "@/modules/commons/common.enum";
-import { Column, PaginationInfo } from "@/modules/commons/common.interface";
+import { IConfigTableColumn, PaginationInfo } from "@/modules/commons/common.interface";
 
 interface TableProps<T> {
     data: T[];
-    columns: Column[];
+    columns: IConfigTableColumn[];
     onEdit?: (row: T) => void;
     onDelete?: (id: string) => void;
     onCreate?: () => void;
@@ -69,7 +69,7 @@ export default function Table<T extends { id?: number | string }>({
     };
 
     // sort toggle
-    const handleSort = (col: Column) => {
+    const handleSort = (col: IConfigTableColumn) => {
         if (!col.orderField) return;
 
         let newDirection =

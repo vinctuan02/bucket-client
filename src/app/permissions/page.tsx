@@ -11,17 +11,13 @@ import { GetListPermissionDto } from "@/modules/permissions/permission.dto";
 import { columnsTable } from "@/modules/permissions/permission.constant";
 import { OrderDirection } from "@/modules/commons/common.enum";
 import { PermissionFieldMapping } from "@/modules/permissions/permisson.enum";
+import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
 
 export default function PermissionsPage() {
     const [permissions, setPermissions] = useState<Permission[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [editingPermission, setEditingPermission] = useState<Permission>();
-    const [pagination, setPagination] = useState({
-        currentPage: 1,
-        totalPages: 1,
-        totalItems: 0,
-        itemsPerPage: 20,
-    });
+    const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
 
     const [permissionQuery, setPermissionQuery] = useState<GetListPermissionDto>(
         new GetListPermissionDto({ fieldOrder: PermissionFieldMapping.NAME })
@@ -94,7 +90,7 @@ export default function PermissionsPage() {
     };
 
     const handleSearch = (value: string) => {
-        setPermissionQuery(prev => new GetListPermissionDto({ ...prev, keywords: [value] }));
+        setPermissionQuery(prev => new GetListPermissionDto({ ...prev, keywords: value }));
     };
 
     const handlePageChange = (page: number) => {

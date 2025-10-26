@@ -1,18 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./modal.scss";
+import { roleDefault } from "@/modules/roles/role.constant";
+import { Role } from "@/types/type.user";
+import { RolePermission } from "@/modules/roles/role.dto";
 
 interface RoleModalProps {
+  initialData: Partial<Role>;
   onClose: () => void;
-  onSave: (role: { name: string; description: string }) => void;
+  onSave: (role: { name: string; description: string; rolePermissions: RolePermission[]; }) => void;
 }
 
-export default function RoleModal({ onClose, onSave }: RoleModalProps) {
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-  });
+export default function RoleModal({ initialData, onClose, onSave }: RoleModalProps) {
+  const [form, setForm] = useState<Partial<Role>>(roleDefault);
+
+  useEffect(() => {
+    if (initialData) {
+      setForm(initialData);
+    } else {
+      setForm(roleDefault);
+    }
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -20,14 +29,14 @@ export default function RoleModal({ onClose, onSave }: RoleModalProps) {
   };
 
   const handleSubmit = () => {
-    const { name, description } = form;
+    const { name, description, rolePermissions } = form;
 
-    if (!name.trim()) {
+    if (!name?.trim()) {
       alert("Please enter role name.");
       return;
     }
 
-    onSave({ name, description });
+    onSave({ name, description: description || "", rolePermissions: rolePermissions || [] });
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -55,7 +64,7 @@ export default function RoleModal({ onClose, onSave }: RoleModalProps) {
             <input
               name="description"
               type="text"
-              value={form.description}
+              value={form?.description ?? ''}
               onChange={handleChange}
               placeholder="Enter description"
             />
