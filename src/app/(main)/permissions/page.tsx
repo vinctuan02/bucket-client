@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/lib/constants/api.constant";
 import Page from "@/components/pages/c.page";
 import Table from "@/components/tables/c.table";
 import { Permission } from "@/types/type.user";
@@ -10,8 +9,9 @@ import { permissionApi } from "@/modules/permissions/permission.api";
 import { GetListPermissionDto } from "@/modules/permissions/permission.dto";
 import { OrderDirection } from "@/modules/commons/common.enum";
 import { PermissionFieldMapping } from "@/modules/permissions/permisson.enum";
-import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/const/common.constant";
 import { permissionConfigsColumnTable, permissionDefault } from "@/modules/permissions/permission.constant";
+import api from "@/modules/commons/const/common.const.api";
 
 export default function PermissionsPage() {
     const [permissions, setPermissions] = useState<Permission[]>([]);

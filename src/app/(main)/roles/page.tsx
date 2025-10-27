@@ -10,7 +10,7 @@ import { RoleFieldMapping } from "@/modules/roles/role.enum";
 import { Role } from "@/types/type.user";
 import { rolesApi } from "@/modules/roles/role.api";
 import { roleDefault, rolesConifgsColumnTable } from "@/modules/roles/role.constant";
-import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/const/common.constant";
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);

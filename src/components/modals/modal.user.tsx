@@ -7,7 +7,7 @@ import TableSelect from "../table-selector/c.table-selector";
 import { rolesApi } from "@/modules/roles/role.api";
 import { GetListRoleDto } from "@/modules/roles/role.dto";
 import { RoleFieldMapping } from "@/modules/roles/role.enum";
-import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/const/common.constant";
 import { rolesConifgsColumnTable } from "@/modules/roles/role.constant";
 import Page from "../pages/c.page";
 

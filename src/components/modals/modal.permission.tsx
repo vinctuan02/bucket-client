@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import "./modal.scss";
 import "./modal.permission.scss";
-import { PermissionAction } from "@/enums/enum";
 import { permissionDefault } from "@/modules/permissions/permission.constant";
 import { Permission } from "@/types/type.user";
+import { PermissionAction } from "@/modules/permissions/permisson.enum";
 
 interface PermissionModalProps {
     onClose: () => void;

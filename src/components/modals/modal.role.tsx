@@ -9,7 +9,7 @@ import TableSelect from "../table-selector/c.table-selector";
 import { permissionApi } from "@/modules/permissions/permission.api";
 import { GetListPermissionDto } from "@/modules/permissions/permission.dto";
 import { PermissionFieldMapping } from "@/modules/permissions/permisson.enum";
-import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/const/common.constant";
 import { permissionConfigsColumnTable } from "@/modules/permissions/permission.constant";
 import Page from "../pages/c.page";
 

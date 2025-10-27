@@ -5,7 +5,7 @@ import Page from "@/components/pages/c.page";
 import Table from "@/components/tables/c.table";
 import UserModal from "@/components/modals/modal.user";
 import { User, UserRole } from "@/types/type.user";
-import { PAGINATION_DEFAULT } from "@/modules/commons/common.constant";
+import { PAGINATION_DEFAULT } from "@/modules/commons/const/common.constant";
 import { OrderDirection } from "@/modules/commons/common.enum";
 import { userApi } from "@/modules/users/user.api";
 import { CreateUserDto, GetListUserDto, UpdateUserDto } from "@/modules/users/user.dto";
