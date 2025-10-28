@@ -1,8 +1,9 @@
-// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { authApi } from "@/modules/auth/auth.api";
+import "./login.scss";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -15,78 +16,71 @@ export default function LoginPage() {
         e.preventDefault();
         setError("");
         setLoading(true);
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Đăng nhập thất bại");
 
-            localStorage.setItem("access_token", data.access_token);
-            router.push("/dashboard");
+        try {
+            const res = await authApi.login({ email, password });
+            const { accessToken, refreshToken } = res.data!
+
+            localStorage.setItem("access_token", accessToken);
+            if (refreshToken) {
+                localStorage.setItem("refresh_token", refreshToken);
+            }
+
+            router.push("/users");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Login failed");
         } finally {
             setLoading(false);
         }
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+        authApi.googleLogin();
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center">Đăng nhập</h1>
+        <div className="login-page">
+            <div className="card">
+                <h1>Login</h1>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="you@example.com"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                    <div className="form-group">
+                        <label>Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="••••••••"
                         />
                     </div>
 
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    {error && <p className="error">{error}</p>}
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                    >
-                        {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+                    <button type="submit" disabled={loading}>
+                        {loading ? "Signing in..." : "Sign in"}
                     </button>
                 </form>
 
-                <div className="my-4 text-center text-gray-500 text-sm">hoặc</div>
+                <div className="divider">or</div>
 
-                <button
-                    onClick={handleGoogleLogin}
-                    className="w-full flex items-center justify-center gap-2 border py-2 rounded-lg hover:bg-gray-100 transition"
-                >
-                    <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-                    Đăng nhập bằng Google
-                </button>
+                <div className="social-login">
+                    <button onClick={handleGoogleLogin}>
+                        <img src="/google-icon.svg" alt="Google" />
+                        Sign in with Google
+                    </button>
+                </div>
             </div>
         </div>
     );
