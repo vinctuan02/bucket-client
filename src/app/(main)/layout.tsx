@@ -6,6 +6,8 @@ import "./globals.css";
 import Sidebar from "@/components/commons/c.sidebar";
 import Header from "@/components/commons/c.header";
 
+import { useRouter } from "next/navigation";
+
 export default function RootLayout({
   children,
 }: {
@@ -13,6 +15,7 @@ export default function RootLayout({
 }) {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +30,13 @@ export default function RootLayout({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.replace("/login"); // Nếu chưa login thì về login
+    }
+  }, [router]);
 
   return (
     <html lang="en">

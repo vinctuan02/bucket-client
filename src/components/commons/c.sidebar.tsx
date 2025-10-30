@@ -3,15 +3,15 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Folder, Users, Settings, Shield, KeyRound } from "lucide-react";
+import { Folder, Users, Settings, Shield, KeyRound, CircleUserRound } from "lucide-react";
 import "./c.sidebar.scss";
 
 const sidebarNavItems = [
   {
-    display: "My Folder",
+    display: "Folder",
     icon: <Folder size={18} strokeWidth={2.5} />,
-    to: "/my-folder",
-    section: "my-folder",
+    to: "/folder",
+    section: "folder",
   },
   {
     display: "Users",
@@ -36,6 +36,12 @@ const sidebarNavItems = [
     icon: <Settings size={18} strokeWidth={2.5} />,
     to: "/app-config",
     section: "app-config",
+  },
+  {
+    display: "Profile",
+    icon: <CircleUserRound size={18} strokeWidth={2.5} />,
+    to: "/my-profile",
+    section: "my-profile",
   },
 ];
 
@@ -75,17 +81,15 @@ export default function Sidebar() {
           ref={indicatorRef}
           className="sidebar__menu__indicator"
           style={{
-            transform: `translateX(-50%) translateY(${
-              activeIndex * stepHeight
-            }px)`,
+            transform: `translateX(-50%) translateY(${activeIndex * stepHeight
+              }px)`,
           }}
         ></div>
         {sidebarNavItems.map((item, index) => (
           <Link href={item.to} key={index}>
             <div
-              className={`sidebar__menu__item ${
-                activeIndex === index ? "active" : ""
-              }`}
+              className={`sidebar__menu__item ${activeIndex === index ? "active" : ""
+                }`}
             >
               <div className="sidebar__menu__item__icon">{item.icon}</div>
               <div className="sidebar__menu__item__text">{item.display}</div>
