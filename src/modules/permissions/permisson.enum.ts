@@ -8,7 +8,7 @@ export enum PermissionFieldMapping {
 }
 
 export enum PermissionAction {
-	VIEW = 'view',
+	READ = 'read',
 	CREATE = 'create',
 	UPDATE = 'update',
 	DELETE = 'delete',
