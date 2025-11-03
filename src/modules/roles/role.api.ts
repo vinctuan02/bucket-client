@@ -1,5 +1,5 @@
+import { Role } from '@/modules/users/user.entity';
 import { PageDto, ResponseSuccess } from '@/types/type.response';
-import { Role } from '@/types/type.user';
 import api from '../commons/const/common.const.api';
 import { CreateRoleDto, GetListRoleDto, UpdateRoleDto } from './role.dto';
 

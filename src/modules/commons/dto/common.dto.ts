@@ -1,5 +1,5 @@
-import { OrderDirection } from './common.enum';
-import { FILED_ORDER_DEFAULT } from './const/common.constant';
+import { FILED_ORDER_DEFAULT } from '../const/common.constant';
+import { OrderDirection } from '../enum/common.enum';
 
 export abstract class BaseQueryDto {
 	keywords?: string;

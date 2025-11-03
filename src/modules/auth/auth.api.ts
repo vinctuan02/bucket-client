@@ -1,3 +1,4 @@
+import { User } from '@/modules/users/user.entity';
 import { ResponseSuccess } from '@/types/type.response';
 import api from '../commons/const/common.const.api';
 import {
@@ -74,5 +75,8 @@ export const authApi = {
 		window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
 	},
 
-	me: () => api.get('/auth/me'),
+	me: async () => {
+		const res = await api.get<ResponseSuccess<User>>('/auth/me');
+		return res.data;
+	},
 };

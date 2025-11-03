@@ -1,109 +1,106 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { authApi } from "@/modules/auth/auth.api";
-import "./login.scss";
+import { authApi } from '@/modules/auth/auth.api';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import './login.scss';
 
 export default function LoginPage() {
-    const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+	const router = useRouter();
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState('');
 
-    useEffect(() => {
-        const url = new URL(window.location.href);
-        const token = url.searchParams.get("accessToken");
+	useEffect(() => {
+		const url = new URL(window.location.href);
+		const token = url.searchParams.get('accessToken');
 
-        if (token) {
-            localStorage.setItem("access_token", token);
-            window.history.replaceState({}, "", "/");
-        }
-    }, []);
+		if (token) {
+			localStorage.setItem('access_token', token);
+			window.history.replaceState({}, '', '/');
+		}
+	}, []);
 
-    useEffect(() => {
-        const token = localStorage.getItem("access_token");
+	useEffect(() => {
+		const token = localStorage.getItem('access_token');
 
-        console.log(token)
-        if (token) {
-            router.replace("/");
-        }
-    }, [router]);
+		console.log(token);
+		if (token) {
+			router.replace('/');
+		}
+	}, [router]);
 
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError('');
+		setLoading(true);
 
+		try {
+			const res = await authApi.login({ email, password });
+			const { accessToken, refreshToken } = res.data!;
 
+			localStorage.setItem('access_token', accessToken);
+			if (refreshToken) {
+				localStorage.setItem('refresh_token', refreshToken);
+			}
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
+			router.push('/');
+		} catch (err: any) {
+			setError(err.message || 'Login failed');
+		} finally {
+			setLoading(false);
+		}
+	};
 
-        try {
-            const res = await authApi.login({ email, password });
-            const { accessToken, refreshToken } = res.data!;
+	const handleGoogleLogin = () => {
+		authApi.googleLogin();
+	};
 
-            localStorage.setItem("access_token", accessToken);
-            if (refreshToken) {
-                localStorage.setItem("refresh_token", refreshToken);
-            }
+	return (
+		<div className="login-page">
+			<div className="card">
+				<h1>Login</h1>
 
-            router.push("/");
-        } catch (err: any) {
-            setError(err.message || "Login failed");
-        } finally {
-            setLoading(false);
-        }
-    };
+				<form onSubmit={handleSubmit}>
+					<div className="form-group">
+						<label>Email</label>
+						<input
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							required
+							placeholder="you@example.com"
+						/>
+					</div>
 
-    const handleGoogleLogin = () => {
-        authApi.googleLogin();
-    };
+					<div className="form-group">
+						<label>Password</label>
+						<input
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							required
+							placeholder="••••••••"
+						/>
+					</div>
 
-    return (
-        <div className="login-page">
-            <div className="card">
-                <h1>Login</h1>
+					{error && <p className="error">{error}</p>}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            placeholder="you@example.com"
-                        />
-                    </div>
+					<button type="submit" disabled={loading}>
+						{loading ? 'Signing in...' : 'Sign in'}
+					</button>
+				</form>
 
-                    <div className="form-group">
-                        <label>Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            placeholder="••••••••"
-                        />
-                    </div>
+				<div className="divider">or</div>
 
-                    {error && <p className="error">{error}</p>}
-
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Signing in..." : "Sign in"}
-                    </button>
-                </form>
-
-                <div className="divider">or</div>
-
-                <div className="social-login">
-                    <button onClick={handleGoogleLogin}>
-                        <img src="/logo.google.png" alt="Google" />
-                        Sign in with Google
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+				<div className="social-login">
+					<button onClick={handleGoogleLogin}>
+						<img src="/logo.google.png" alt="Google" />
+						Sign in with Google
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 }

@@ -1,4 +1,4 @@
-import { BaseQueryDto } from '../commons/common.dto';
+import { BaseQueryDto } from '../commons/dto/common.dto';
 import { UserFieldOrder } from './user.enum';
 
 export interface CreateUserDto {

@@ -1,50 +1,50 @@
-import { Permission } from "@/types/type.user";
-import { IConfigTableColumn } from "../commons/common.interface";
-import { PermissionFieldMapping } from "./permisson.enum";
+import { Permission } from '@/modules/users/user.entity';
+import { IConfigTableColumn } from '../commons/interface/common.interface';
+import { PermissionFieldMapping } from './permisson.enum';
 
 export const permissionConfigsColumnTable: IConfigTableColumn[] = [
-  {
-    label: "Name",
-    field: "name",
-    orderField: PermissionFieldMapping.NAME,
-    width: 20,
-  },
-  {
-    label: "Action",
-    field: "action",
-    orderField: PermissionFieldMapping.ACTION,
-    width: 20,
-  },
-  {
-    label: "Resource",
-    field: "resource",
-    orderField: PermissionFieldMapping.RESOURCE,
-    width: 10,
-  },
-  {
-    label: "Description",
-    field: "description",
-    orderField: PermissionFieldMapping.DESCRIPTION,
-    width: 30,
-  },
-  {
-    label: "Created At",
-    field: "createdAt",
-    orderField: PermissionFieldMapping.CREATED_AT,
-    width: 10,
-  },
-  {
-    label: "Updated At",
-    field: "updatedAt",
-    orderField: PermissionFieldMapping.UPDATED_AT,
-    width: 10,
-  },
+	{
+		label: 'Name',
+		field: 'name',
+		orderField: PermissionFieldMapping.NAME,
+		width: 20,
+	},
+	{
+		label: 'Action',
+		field: 'action',
+		orderField: PermissionFieldMapping.ACTION,
+		width: 20,
+	},
+	{
+		label: 'Resource',
+		field: 'resource',
+		orderField: PermissionFieldMapping.RESOURCE,
+		width: 10,
+	},
+	{
+		label: 'Description',
+		field: 'description',
+		orderField: PermissionFieldMapping.DESCRIPTION,
+		width: 30,
+	},
+	{
+		label: 'Created At',
+		field: 'createdAt',
+		orderField: PermissionFieldMapping.CREATED_AT,
+		width: 10,
+	},
+	{
+		label: 'Updated At',
+		field: 'updatedAt',
+		orderField: PermissionFieldMapping.UPDATED_AT,
+		width: 10,
+	},
 ];
 
 export const permissionDefault: Partial<Permission> = {
-  id: "",
-  name: "",
-  description: "",
-  action: "",
-  resource: "",
+	id: '',
+	name: '',
+	description: '',
+	action: '',
+	resource: '',
 };

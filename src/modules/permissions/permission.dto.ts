@@ -1,8 +1,8 @@
-import { BaseQueryDto } from "@/modules/commons/common.dto";
+import { BaseQueryDto } from '@/modules/commons/dto/common.dto';
 
 export class GetListPermissionDto extends BaseQueryDto {
-  constructor(partial?: Partial<GetListPermissionDto>) {
-    super();
-    Object.assign(this, partial);
-  }
+	constructor(partial?: Partial<GetListPermissionDto>) {
+		super();
+		Object.assign(this, partial);
+	}
 }

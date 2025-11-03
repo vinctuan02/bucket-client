@@ -1,5 +1,5 @@
+import { Permission } from '@/modules/users/user.entity';
 import { PageDto, ResponseSuccess } from '@/types/type.response';
-import { Permission } from '@/types/type.user';
 import api from '../commons/const/common.const.api';
 import { GetListPermissionDto } from './permission.dto';
 

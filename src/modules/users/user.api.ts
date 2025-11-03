@@ -1,5 +1,5 @@
+import { User } from '@/modules/users/user.entity';
 import { PageDto, ResponseSuccess } from '@/types/type.response';
-import { User } from '@/types/type.user';
 import api from '../commons/const/common.const.api';
 import { CreateUserDto, GetListUserDto, UpdateUserDto } from './user.dto';
 
