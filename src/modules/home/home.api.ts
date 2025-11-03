@@ -5,12 +5,12 @@ import {
 	CreateFolderDto,
 	GetlistFileNodeDto,
 	UpdateFolderDto,
-} from './folder.dto';
-import { FileNode } from './folder.entity';
+} from './home.dto';
+import { FileNode } from './home.entity';
 
 const BASE_URL = '/file-manager';
 
-export const fileManagerApi = {
+export const fileNodeManagerApi = {
 	getList: async (params?: GetlistFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			BASE_URL,

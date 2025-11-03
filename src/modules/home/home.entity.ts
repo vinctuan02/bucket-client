@@ -1,4 +1,4 @@
-import { BaseUserUUIDEntity } from '@/modules/users/user.entity';
+import { BaseUserUUIDEntity } from '../commons/entities/common.entity';
 
 export interface FileNode extends BaseUserUUIDEntity {
 	name: string;

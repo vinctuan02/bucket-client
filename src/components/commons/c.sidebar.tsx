@@ -15,10 +15,10 @@ import './c.sidebar.scss';
 
 const sidebarNavItems = [
 	{
-		display: 'Folder',
+		display: 'Home',
 		icon: <Folder size={18} strokeWidth={2.5} />,
-		to: '/folder',
-		section: 'folder',
+		to: '/home',
+		section: 'home',
 	},
 	{
 		display: 'Users',

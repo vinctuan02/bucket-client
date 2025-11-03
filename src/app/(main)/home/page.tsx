@@ -4,14 +4,15 @@ import Page from '@/components/pages/c.page';
 import Table from '@/components/tables/c.table';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
-import { fileManagerApi } from '@/modules/folder/folder.api';
-import { fileNodeConifgsColumnTable } from '@/modules/folder/folder.const';
-import { GetlistFileNodeDto } from '@/modules/folder/folder.dto';
-import { FileNode } from '@/modules/folder/folder.entity';
+import { fileNodeManagerApi } from '@/modules/home/home.api';
+import { fileNodeConifgsColumnTable } from '@/modules/home/home.const';
+import { GetlistFileNodeDto } from '@/modules/home/home.dto';
+import { FileNode } from '@/modules/home/home.entity';
+
 import { useEffect, useState } from 'react';
 
-export default function FolderPage() {
-	const [folders, setFolders] = useState<FileNode[]>([]);
+export default function HomePage() {
+	const [FileNodes, setFileNodes] = useState<FileNode[]>([]);
 	const [showModal, setShowModal] = useState(false);
 	const [editingFolder, setEditingFolder] = useState<Partial<FileNode>>({});
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
@@ -19,10 +20,10 @@ export default function FolderPage() {
 		new GetlistFileNodeDto(),
 	);
 
-	const fetchFolders = async (params?: GetlistFileNodeDto) => {
+	const fetchFileNodes = async (params?: GetlistFileNodeDto) => {
 		try {
-			const { data } = await fileManagerApi.getList(params);
-			setFolders(data?.items ?? []);
+			const { data } = await fileNodeManagerApi.getList(params);
+			setFileNodes(data?.items ?? []);
 			if (data?.metadata) {
 				setPagination({
 					page: data.metadata.page,
@@ -32,13 +33,13 @@ export default function FolderPage() {
 				});
 			}
 		} catch (err) {
-			console.error('Error fetching folders:', err);
+			console.error('Error fetching FileNodes:', err);
 		}
 	};
 
 	useEffect(() => {
 		const delayDebounce = setTimeout(() => {
-			fetchFolders(folderQuery);
+			fetchFileNodes(folderQuery);
 		}, 250);
 		return () => clearTimeout(delayDebounce);
 	}, [
@@ -49,42 +50,42 @@ export default function FolderPage() {
 		folderQuery.orderBy,
 	]);
 
-	const handleSave = async (folder: {
+	const handleSave = async (FileNode: {
 		id?: string;
 		name: string;
 		fileNodeParentId?: string;
 	}) => {
 		try {
-			if (folder.id) {
-				await fileManagerApi.updateFolder(folder.id, {
-					name: folder.name,
+			if (FileNode.id) {
+				await fileNodeManagerApi.updateFolder(FileNode.id, {
+					name: FileNode.name,
 				});
 			} else {
-				await fileManagerApi.createFolder({
-					name: folder.name,
-					fileNodeParentId: folder.fileNodeParentId,
+				await fileNodeManagerApi.createFolder({
+					name: FileNode.name,
+					fileNodeParentId: FileNode.fileNodeParentId,
 				});
 			}
-			fetchFolders(folderQuery);
+			fetchFileNodes(folderQuery);
 			setShowModal(false);
 			setEditingFolder({});
 		} catch (err) {
-			console.error('Error saving folder:', err);
+			console.error('Error saving FileNode:', err);
 		}
 	};
 
-	const handleEdit = (folder: FileNode) => {
-		setEditingFolder(folder);
+	const handleEdit = (FileNode: FileNode) => {
+		setEditingFolder(FileNode);
 		setShowModal(true);
 	};
 
 	const handleDelete = async (id: string) => {
-		if (!confirm('Delete this folder?')) return;
+		if (!confirm('Delete this FileNode?')) return;
 		try {
-			await fileManagerApi.delete(id);
-			fetchFolders(folderQuery);
+			await fileNodeManagerApi.delete(id);
+			fetchFileNodes(folderQuery);
 		} catch (err) {
-			console.error('Error deleting folder:', err);
+			console.error('Error deleting FileNode:', err);
 		}
 	};
 
@@ -110,9 +111,9 @@ export default function FolderPage() {
 	};
 
 	return (
-		<Page title="Folders" isShowTitle={false}>
+		<Page title="FileNodes" isShowTitle={false}>
 			<Table
-				data={folders}
+				data={FileNodes}
 				columns={fileNodeConifgsColumnTable}
 				onCreate={() => {
 					setEditingFolder({});

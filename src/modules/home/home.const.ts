@@ -1,5 +1,5 @@
 import { IConfigTableColumn } from '../commons/interface/common.interface';
-import { FileNodeFM } from './folder.enum';
+import { FileNodeFM } from './home.enum';
 
 export const fileNodeConifgsColumnTable: IConfigTableColumn[] = [
 	{ field: 'name', label: 'Name', orderField: FileNodeFM.name },
