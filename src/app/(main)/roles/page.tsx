@@ -11,8 +11,8 @@ import {
 	rolesConifgsColumnTable,
 } from '@/modules/roles/role.constant';
 import { GetListRoleDto, RolePermission } from '@/modules/roles/role.dto';
+import { Role } from '@/modules/roles/role.entity';
 import { RoleFieldMapping } from '@/modules/roles/role.enum';
-import { Role } from '@/modules/users/user.entity';
 import { useEffect, useState } from 'react';
 
 export default function RolesPage() {

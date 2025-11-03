@@ -5,11 +5,12 @@ import { rolesApi } from '@/modules/roles/role.api';
 import { rolesConifgsColumnTable } from '@/modules/roles/role.constant';
 import { GetListRoleDto } from '@/modules/roles/role.dto';
 import { RoleFieldMapping } from '@/modules/roles/role.enum';
-import { Role, User, UserRole } from '@/modules/users/user.entity';
+import { User, UserRole } from '@/modules/users/user.entity';
 import { useEffect, useState } from 'react';
-import Page from '../pages/c.page';
-import TableSelect from '../table-selector/c.table-selector';
+import Page from '../../../components/pages/c.page';
+import TableSelect from '../../../components/table-selector/c.table-selector';
 import './modal.scss';
+import { Role } from '@/modules/roles/role.entity';
 
 interface UserModalProps {
 	initialData?: Partial<User>;

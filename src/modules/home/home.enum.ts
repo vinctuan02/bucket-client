@@ -4,3 +4,5 @@ export enum FileNodeFM {
 	createdAt = 'fileNode.createdAt',
 	updatedAt = 'fileNode.updatedAt',
 }
+
+export enum FileNodeFieldOrder {}

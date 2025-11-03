@@ -5,9 +5,10 @@ import { useState, useEffect, useRef } from "react";
 import { authApi } from "@/modules/auth/auth.api";
 import { useRouter } from "next/navigation";
 import "./c.header.scss";
+import { User } from "@/modules/users/user.entity";
 
 export default function Header() {
-  const [user, setUser] = useState<{ name: string; email: string; avatar?: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function Header() {
     const fetchUser = async () => {
       try {
         const res = await authApi.me();
-        setUser(res.data.data);
+        setUser(res.data ?? null);
       } catch (err) {
         console.error("Failed to load user info:", err);
       }

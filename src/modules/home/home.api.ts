@@ -19,6 +19,14 @@ export const fileNodeManagerApi = {
 		return res.data;
 	},
 
+	getHome: async (params?: GetlistFileNodeDto) => {
+		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
+			`${BASE_URL}/home`,
+			{ params },
+		);
+		return res.data;
+	},
+
 	getListWithChildrens: async (params?: GetlistFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			`${BASE_URL}/with-childrens`,

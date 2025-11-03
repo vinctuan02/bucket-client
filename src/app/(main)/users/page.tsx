@@ -1,6 +1,6 @@
 'use client';
 
-import UserModal from '@/components/modals/modal.user';
+import UserModal from '@/modules/users/components/user.c.create-update.modal';
 import Page from '@/components/pages/c.page';
 import Table from '@/components/tables/c.table';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
@@ -9,11 +9,14 @@ import { userApi } from '@/modules/users/user.api';
 import { usersConifgsColumnTable } from '@/modules/users/user.constant';
 import { GetListUserDto } from '@/modules/users/user.dto';
 import { User, UserRole } from '@/modules/users/user.entity';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function UsersPage() {
-	const [users, setUsers] = useState<User[]>([]);
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
+	const [users, setUsers] = useState<User[]>([]);
 	const [showModal, setShowModal] = useState(false);
 	const [editingUser, setEditingUser] = useState<Partial<User>>({});
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
@@ -22,7 +25,27 @@ export default function UsersPage() {
 		new GetListUserDto(),
 	);
 
-	const fetchUsers = async (params?: GetListUserDto) => {
+	useEffect(() => {
+		const qp = Object.fromEntries(searchParams.entries());
+		setUserQuery(
+			new GetListUserDto({
+				...qp,
+				page: qp.page ? Number(qp.page) : 1,
+				pageSize: qp.pageSize ? Number(qp.pageSize) : 10,
+			}),
+		);
+	}, []);
+
+	const syncUrlParams = (params: Partial<GetListUserDto>) => {
+		const url = new URLSearchParams(searchParams.toString());
+		Object.entries(params).forEach(([key, value]) => {
+			if (!value) url.delete(key);
+			else url.set(key, String(value));
+		});
+		router.replace(`?${url.toString()}`, { scroll: false });
+	};
+
+	const fetchUsers = useCallback(async (params?: GetListUserDto) => {
 		try {
 			const { data } = await userApi.getList(params);
 			setUsers(data?.items ?? []);
@@ -37,14 +60,12 @@ export default function UsersPage() {
 		} catch (err) {
 			console.error('Error fetching users:', err);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
-		const delayDebounce = setTimeout(() => {
-			fetchUsers(userQuery);
-		}, 250);
-
-		return () => clearTimeout(delayDebounce);
+		const t = setTimeout(() => fetchUsers(userQuery), 250);
+		syncUrlParams(userQuery);
+		return () => clearTimeout(t);
 	}, [
 		userQuery.keywords,
 		userQuery.page,
@@ -66,19 +87,12 @@ export default function UsersPage() {
 				email: user.email,
 				userRoles: user.userRoles.map((ur) => ({ roleId: ur.roleId })),
 			};
-
-			if (user.password) {
-				dto.password = user.password;
-			}
-
-			if (user.id) {
-				await userApi.update(user.id, dto);
-			} else {
-				if (!user.password)
-					throw new Error('Password is required for new user');
+			if (user.password) dto.password = user.password;
+			if (user.id) await userApi.update(user.id, dto);
+			else {
+				if (!user.password) throw new Error('Password is required for new user');
 				await userApi.create(dto);
 			}
-
 			fetchUsers(userQuery);
 			setShowModal(false);
 			setEditingUser({});
@@ -103,9 +117,7 @@ export default function UsersPage() {
 	};
 
 	const handleSearch = (value: string) => {
-		setUserQuery(
-			(prev) => new GetListUserDto({ ...prev, keywords: value }),
-		);
+		setUserQuery((prev) => new GetListUserDto({ ...prev, keywords: value, page: 1 }));
 	};
 
 	const handlePageChange = (page: number) => {
@@ -119,6 +131,7 @@ export default function UsersPage() {
 					...prev,
 					fieldOrder: field,
 					orderBy: direction,
+					page: 1,
 				}),
 		);
 	};

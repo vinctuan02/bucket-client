@@ -12,6 +12,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Pencil,
+	SplinePointer,
 	Trash2,
 } from 'lucide-react';
 import React, { useState } from 'react';
@@ -27,6 +28,8 @@ interface TableProps<T> {
 	pagination?: PaginationInfo;
 	onPageChange?: (page: number) => void;
 	onSortChange?: (field: string, direction: OrderDirection) => void;
+	onRowClick?: (row: T) => void;
+	loading?: boolean;
 }
 
 export default function Table<T extends { id?: number | string }>({
@@ -39,6 +42,8 @@ export default function Table<T extends { id?: number | string }>({
 	pagination,
 	onPageChange,
 	onSortChange,
+	onRowClick,
+	loading
 }: TableProps<T>) {
 	const [search, setSearch] = useState('');
 	const [fieldOrder, setFieldOrder] = useState('');
@@ -87,7 +92,7 @@ export default function Table<T extends { id?: number | string }>({
 
 		let newDirection =
 			fieldOrder === col.orderField &&
-			orderDirection === OrderDirection.ASC
+				orderDirection === OrderDirection.ASC
 				? OrderDirection.DESC
 				: OrderDirection.ASC;
 
@@ -132,9 +137,9 @@ export default function Table<T extends { id?: number | string }>({
 										{col.orderField && (
 											<>
 												{fieldOrder ===
-												col.orderField ? (
+													col.orderField ? (
 													orderDirection ===
-													OrderDirection.ASC ? (
+														OrderDirection.ASC ? (
 														<ArrowUp size={14} />
 													) : (
 														<ArrowDown size={14} />
@@ -154,23 +159,18 @@ export default function Table<T extends { id?: number | string }>({
 					<tbody>
 						{data?.length ? (
 							data.map((row: any) => (
-								<tr key={row.id}>
+								<tr
+									key={row.id}
+									className="clickable-row"
+									onClick={() => onRowClick?.(row)}
+								>
 									{columns.map((col) => {
-										const value = col.field
-											.split('.')
-											.reduce(
-												(acc, key) => acc?.[key],
-												row,
-											);
-										return (
-											<td key={col.field}>
-												{value ?? '-'}
-											</td>
-										);
+										const value = col.field.split('.').reduce((acc, key) => acc?.[key], row);
+										return <td key={col.field}>{value ?? '-'}</td>;
 									})}
 
 									{(onEdit || onDelete) && (
-										<td className="table__actions">
+										<td className="table__actions" onClick={(e) => e.stopPropagation()}>
 											{onEdit && (
 												<button
 													className="icon-btn edit"
@@ -182,9 +182,7 @@ export default function Table<T extends { id?: number | string }>({
 											{onDelete && (
 												<button
 													className="icon-btn delete"
-													onClick={() =>
-														onDelete(row.id!)
-													}
+													onClick={() => onDelete(row.id!)}
 												>
 													<Trash2 size={16} />
 												</button>
@@ -195,16 +193,18 @@ export default function Table<T extends { id?: number | string }>({
 							))
 						) : (
 							<tr>
-								<td
-									colSpan={columns.length + 1}
-									style={{ textAlign: 'center' }}
-								>
-									No data
-								</td>
+								<td colSpan={columns.length + 1} style={{ textAlign: 'center' }}>No data</td>
 							</tr>
 						)}
 					</tbody>
+
 				</table>
+
+				{loading && (
+					<div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10">
+						<SplinePointer size={32} />
+					</div>
+				)}
 			</div>
 
 			{/* Pagination */}
@@ -231,9 +231,8 @@ export default function Table<T extends { id?: number | string }>({
 						{renderPageNumbers()?.map((page, index) => (
 							<button
 								key={index}
-								className={`page-btn ${
-									page === pagination.page ? 'active' : ''
-								} ${page === '...' ? 'dots' : ''}`}
+								className={`page-btn ${page === pagination.page ? 'active' : ''
+									} ${page === '...' ? 'dots' : ''}`}
 								onClick={() =>
 									typeof page === 'number' &&
 									handlePageChange(page)

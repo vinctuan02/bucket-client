@@ -87,12 +87,21 @@
     }
 
     tbody {
+      tr.clickable-row {
+          cursor: pointer;
+        }
+
       tr {
+
+        
+       
         &:hover {
           background-color: #f3f4f6;
         }
 
         td {
+        
+
           padding: 12px;
           font-size: 14px;
           color: #374151;

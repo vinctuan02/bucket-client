@@ -1,4 +1,5 @@
 import { BaseQueryDto } from '../commons/dto/common.dto';
+import { FileNodeFM } from './home.enum';
 
 export interface FileMetadata {
 	fileName: string;
@@ -22,4 +23,11 @@ export interface CreateFileDto {
 
 export class GetlistFileNodeDto extends BaseQueryDto {
 	fileNodeParentId?: string;
+
+	fieldOrder: FileNodeFM = FileNodeFM.name;
+
+	constructor(init?: Partial<GetlistFileNodeDto>) {
+		super();
+		Object.assign(this, init);
+	}
 }
