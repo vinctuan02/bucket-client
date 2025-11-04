@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import FileNodeModal from '@/modules/home/components/home.c.modal';
 import { FileNodeFM } from '@/modules/home/home.enum';
+import { authApi } from '@/modules/auth/auth.api';
+import CreateMenu from '@/modules/home/components/home.c.create-menu';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -20,8 +22,10 @@ export default function HomePage() {
 
 	const [FileNodes, setFileNodes] = useState<FileNode[]>([]);
 	const [showModal, setShowModal] = useState(false);
+	const [modalType, setModalType] = useState<'folder' | 'file' | null>(null);
 	const [editingFolder, setEditingFolder] = useState<Partial<FileNode>>({});
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
+	const [showMenu, setShowMenu] = useState(false);
 
 	const [folderQuery, setFolderQuery] = useState<GetlistFileNodeDto>(
 		new GetlistFileNodeDto(),
@@ -29,6 +33,16 @@ export default function HomePage() {
 
 	useEffect(() => {
 		const params = Object.fromEntries(searchParams.entries());
+
+		if (!params.fileNodeParentId) {
+			(async () => {
+				const { data: user } = await authApi.me();
+				if (user?.id) {
+					router.replace(`?fileNodeParentId=${user?.id}`, { scroll: false });
+				}
+			})();
+		}
+
 		setFolderQuery(
 			new GetlistFileNodeDto({
 				...params,
@@ -86,6 +100,7 @@ export default function HomePage() {
 
 	const handleEdit = (FileNode: FileNode) => {
 		setEditingFolder(FileNode);
+		setModalType('folder');
 		setShowModal(true);
 	};
 
@@ -98,7 +113,6 @@ export default function HomePage() {
 			console.error('Error deleting FileNode:', err);
 		}
 	};
-
 
 	const handleSearch = (value: string) => {
 		setFolderQuery(
@@ -122,30 +136,50 @@ export default function HomePage() {
 		);
 	};
 
-	const handleSave = async (folder: {
-		id?: string;
-		name: string;
-		fileNodeParentId?: string;
-	}) => {
+	const handleSave = async (data: any) => {
 		try {
-			if (folder.id) {
-				await fileNodeManagerApi.updateFolder(folder.id, {
-					name: folder.name,
-				});
-			} else {
+			if (modalType === 'folder') {
 				await fileNodeManagerApi.createFolder({
-					name: folder.name,
-					fileNodeParentId: folder.fileNodeParentId,
+					name: data.name,
+					fileNodeParentId: data.fileNodeParentId,
+				});
+			} else if (modalType === 'file') {
+
+				const file = data.file as File;
+				const extension = file.name.split('.').pop() ?? '';
+				const fileMetadata = {
+					fileName: file.name,
+					fileSize: file.size,
+					contentType: file.type || 'application/octet-stream',
+					extension,
+				};
+
+
+				const res = await fileNodeManagerApi.createFile({
+					name: data.name,
+					fileNodeParentId: data.fileNodeParentId,
+					fileMetadata,
+				});
+
+				const uploadUrl = res.data?.data?.uploadUrl;
+				if (!uploadUrl) throw new Error('No upload URL received from server');
+
+				await fetch(uploadUrl, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': file.type,
+					},
+					body: file,
 				});
 			}
 
 			fetchFileNodes(folderQuery);
-
 			setShowModal(false);
 			setEditingFolder({});
+			setModalType(null);
 		} catch (error) {
-			console.error('Error saving folder:', error);
-			alert('Error saving folder');
+			console.error('Error saving:', error);
+			alert('Error saving file or folder');
 		}
 	};
 
@@ -163,30 +197,50 @@ export default function HomePage() {
 
 	return (
 		<Page title="FileNodes" isShowTitle={false}>
-			<Table
-				data={FileNodes}
-				columns={fileNodeConifgsColumnTable}
-				onCreate={() => {
-					setEditingFolder({});
-					setShowModal(true);
-				}}
-				onDelete={handleDelete}
-				onEdit={handleEdit}
-				onSearch={handleSearch}
-				pagination={pagination}
-				onPageChange={handlePageChange}
-				onSortChange={handleSortChange}
-				onRowClick={handleRowClick}
-			/>
-
-			{showModal && (
-				<FileNodeModal
-					type='file'
-					initialData={editingFolder}
-					onClose={() => setShowModal(false)}
-					onSave={handleSave}
+			<div className="relative">
+				<Table
+					data={FileNodes}
+					columns={fileNodeConifgsColumnTable}
+					onCreate={() => setShowMenu((prev) => !prev)}
+					onDelete={handleDelete}
+					onEdit={handleEdit}
+					onSearch={handleSearch}
+					pagination={pagination}
+					onPageChange={handlePageChange}
+					onSortChange={handleSortChange}
+					onRowClick={handleRowClick}
 				/>
-			)}
+
+				{showMenu && (
+					<div className="absolute top-[60px] right-[20px] z-50">
+						<CreateMenu
+							onClose={() => setShowMenu(false)}
+							onCreateFolder={() => {
+								setEditingFolder({ fileNodeParentId: folderQuery.fileNodeParentId });
+								setModalType('folder');
+								setShowModal(true);
+							}}
+							onCreateFile={() => {
+								setEditingFolder({ fileNodeParentId: folderQuery.fileNodeParentId });
+								setModalType('file');
+								setShowModal(true);
+							}}
+						/>
+					</div>
+				)}
+
+				{showModal && modalType && (
+					<FileNodeModal
+						type={modalType}
+						initialData={editingFolder}
+						onClose={() => {
+							setShowModal(false);
+							setModalType(null);
+						}}
+						onSave={handleSave}
+					/>
+				)}
+			</div>
 		</Page>
 	);
 }
