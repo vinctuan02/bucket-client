@@ -46,6 +46,32 @@ export const fileNodeManagerApi = {
 	getOneFullTree: async (id: string) =>
 		await api.get(`${BASE_URL}/${id}/full-tree`),
 
+	getChildrens: async (id: string, params: GetlistFileNodeDto) => {
+		const res = await api.get(`${BASE_URL}/${id}/childrens`, { params });
+		return res.data;
+	},
+
+	getBreadcrumbs: async (id: string) => {
+		const data = await api.get<ResponseSuccess<FileNode[]>>(
+			`${BASE_URL}/${id}/breadcrumbs`,
+		);
+		return data.data;
+	},
+
+	readFile: async (id: string) => {
+		const res = await api.get<
+			ResponseSuccess<{
+				id: string;
+				fileBucket: {
+					id: string;
+					contentType: string;
+					readUrl: string;
+				};
+			}>
+		>(`${BASE_URL}/${id}/read`);
+		return res.data;
+	},
+
 	createFolder: async (data: CreateFolderDto) =>
 		await api.post(`${BASE_URL}/folder`, data),
 

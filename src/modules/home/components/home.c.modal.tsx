@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, Upload } from 'lucide-react';
-import './modal.scss';
+import './home.c.modal.scss';
 import { FileNode } from '@/modules/home/home.entity';
 
 interface FileNodeModalProps {
@@ -65,7 +65,7 @@ export default function FileNodeModal({ type, initialData, onClose, onSave }: Fi
                         <div className="form-group full">
                             <label>Upload File</label>
                             {file ? (
-                                <div className="file-preview">
+                                <div className="file-preview-u">
                                     <span className="file-name">{file.name}</span>
                                     <button
                                         className="file-remove"

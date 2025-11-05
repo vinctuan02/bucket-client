@@ -1,0 +1,91 @@
+.create-menu-overlay {
+    // position: fixed;
+    // inset: 0;
+    // background: transparent; // có thể dùng rgba(0,0,0,0.1) nếu muốn mờ
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
+    // z-index: 50;
+
+	.create-menu {
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		// width: 200px;
+		// padding: 10px;
+		animation: fade-in 0.15s ease-out;
+		z-index: 50;
+
+		// &__header {
+		// 	display: flex;
+		// 	justify-content: space-between;
+		// 	align-items: center;
+		// 	padding: 0 12px 6px;
+		// 	margin-bottom: 4px;
+		// 	border-bottom: 1px solid #f0f0f0;
+
+		// 	span {
+		// 		font-size: 0.875rem;
+		// 		font-weight: 600;
+		// 		color: #4b5563;
+		// 	}
+
+		// 	.close-btn {
+		// 		color: #9ca3af;
+		// 		transition: color 0.15s;
+		// 		padding: 4px;
+
+		// 		&:hover {
+		// 			color: #4b5563;
+		// 		}
+		// 	}
+		// }
+
+		&__list {
+			display: flex;
+			flex-direction: column;
+
+			.create-menu__item {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				width: 100%;
+				padding: 8px 12px;
+				font-size: 0.875rem;
+				color: #374151;
+				border: none;
+				background: none;
+				cursor: pointer;
+				transition: background 0.15s;
+				border-radius: 4px;
+
+				&:hover {
+					background: #f3f4f6;
+				}
+
+				.item-left {
+					display: flex;
+					align-items: center;
+					gap: 8px;
+				}
+
+				.shortcut {
+					color: #9ca3af;
+					font-size: 0.75rem;
+				}
+			}
+		}
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
