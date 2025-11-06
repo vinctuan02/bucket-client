@@ -79,4 +79,10 @@ export const authApi = {
 		const res = await api.get<ResponseSuccess<User>>('/auth/me');
 		return res.data;
 	},
+
+	// return user with role, permissions
+	meDetails: async () => {
+		const res = await api.get<ResponseSuccess<User>>('/auth/me/detail');
+		return res.data;
+	},
 };

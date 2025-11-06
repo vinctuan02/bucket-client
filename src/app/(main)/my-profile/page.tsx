@@ -3,6 +3,8 @@
 import Page from '@/components/pages/c.page';
 import { authApi } from '@/modules/auth/auth.api';
 import { User } from '@/modules/users/user.entity';
+import { UserOutlined } from '@ant-design/icons';
+import { Avatar } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import './my-profile.scss';
@@ -59,10 +61,7 @@ export default function ProfilePage() {
 			<div className="profile-page">
 				<div className="card">
 					<div className="avatar">
-						<img
-							src={user.avatar || '/images/default-avatar.png'}
-							alt="Avatar"
-						/>
+						<Avatar src={user.avatar} icon={<UserOutlined />} />
 					</div>
 
 					<h2 className="name">{user.name}</h2>
