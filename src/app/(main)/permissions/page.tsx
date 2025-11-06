@@ -12,8 +12,8 @@ import {
 	permissionDefault,
 } from '@/modules/permissions/permission.constant';
 import { GetListPermissionDto } from '@/modules/permissions/permission.dto';
+import { Permission } from '@/modules/permissions/permission.entity';
 import { PermissionFieldMapping } from '@/modules/permissions/permisson.enum';
-import { Permission } from '@/modules/users/user.entity';
 import { useEffect, useState } from 'react';
 
 export default function PermissionsPage() {
@@ -75,7 +75,7 @@ export default function PermissionsPage() {
 			if (permission.id) {
 				await permissionApi.update(permission.id, rest);
 			} else {
-				await permissionApi.create(permission);
+				await permissionApi.create(rest);
 			}
 
 			fetchPermissions(permissionQuery);

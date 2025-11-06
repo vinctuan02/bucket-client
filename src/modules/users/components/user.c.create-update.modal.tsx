@@ -11,6 +11,7 @@ import Page from '../../../components/pages/c.page';
 import TableSelect from '../../../components/table-selector/c.table-selector';
 import './modal.scss';
 import { Role } from '@/modules/roles/role.entity';
+import { message } from 'antd';
 
 interface UserModalProps {
 	initialData?: Partial<User>;
@@ -105,18 +106,18 @@ export default function UserModal({
 		const { name, email, password } = form;
 
 		if (!name?.trim() || !email?.trim()) {
-			alert('Please fill in required fields (Name, Email).');
+			message.warning('Please fill in required fields (Name, Email).');
 			return;
 		}
 
 		if (!/\S+@\S+\.\S+/.test(email)) {
-			alert('Invalid email format.');
+			message.warning('Invalid email format.');
 			return;
 		}
 
 		// Nếu tạo mới, password bắt buộc
 		if (!initialData?.id && (!password || password.length < 6)) {
-			alert(
+			message.warning(
 				'Password is required and must be at least 6 characters for new users.',
 			);
 			return;
@@ -124,7 +125,7 @@ export default function UserModal({
 
 		// Nếu edit và muốn đổi password, phải >=6 ký tự
 		if (initialData?.id && password && password.length < 6) {
-			alert('Password must be at least 6 characters.');
+			message.warning('Password must be at least 6 characters.');
 			return;
 		}
 

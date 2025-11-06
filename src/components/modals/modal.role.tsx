@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import Page from '../pages/c.page';
 import TableSelect from '../table-selector/c.table-selector';
 import './modal.scss';
+import { message } from 'antd';
 
 interface RoleModalProps {
 	initialData: Partial<Role>;
@@ -111,7 +112,7 @@ export default function RoleModal({
 		const { id, name, description } = form;
 
 		if (!name?.trim()) {
-			alert('Please enter role name.');
+			message.warning('Please enter role name.');
 			return;
 		}
 

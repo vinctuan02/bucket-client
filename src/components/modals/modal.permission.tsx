@@ -2,10 +2,11 @@
 
 import { permissionDefault } from '@/modules/permissions/permission.constant';
 import { PermissionAction } from '@/modules/permissions/permisson.enum';
-import { Permission } from '@/modules/users/user.entity';
 import { useEffect, useState } from 'react';
 import './modal.permission.scss';
 import './modal.scss';
+import { Permission } from '@/modules/permissions/permission.entity';
+import { message } from 'antd';
 
 interface PermissionModalProps {
 	onClose: () => void;
@@ -40,8 +41,8 @@ export default function PermissionModal({
 	const handleSubmit = () => {
 		const { name, description, action, resource, id } = form;
 
-		if (name?.trim() || action?.trim() || resource?.trim()) {
-			alert('Please fill in all required fields.');
+		if (!name?.trim() || !action?.trim() || !resource?.trim()) {
+			message.warning('Please fill in all required fields.');
 			return;
 		}
 
@@ -65,7 +66,6 @@ export default function PermissionModal({
 					{initialData?.id ? 'Edit Permission' : 'Create Permission'}
 				</h2>
 
-				{/* First Row: Name + Resource */}
 				<div className="form-row">
 					<div className="form-group">
 						<label>Name</label>
@@ -90,7 +90,6 @@ export default function PermissionModal({
 					</div>
 				</div>
 
-				{/* Second Row: Action + Description */}
 				<div className="form-row">
 					<div className="form-group">
 						<label>Action</label>

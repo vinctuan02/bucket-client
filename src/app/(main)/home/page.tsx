@@ -105,7 +105,7 @@ export default function HomePage() {
 				});
 			}
 		} catch (err) {
-			console.error('Error fetching FileNodes:', err);
+
 		}
 	};
 
@@ -201,8 +201,7 @@ export default function HomePage() {
 			setEditingFolder({});
 			setModalType(null);
 		} catch (error) {
-			console.error('Error saving:', error);
-			alert('Error saving file or folder');
+
 		}
 	};
 

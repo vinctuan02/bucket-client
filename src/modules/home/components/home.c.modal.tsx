@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { X, Upload } from 'lucide-react';
 import './home.c.modal.scss';
 import { FileNode } from '@/modules/home/home.entity';
+import { message } from 'antd';
 
 interface FileNodeModalProps {
     type: 'folder' | 'file';
@@ -29,8 +30,8 @@ export default function FileNodeModal({ type, initialData, onClose, onSave }: Fi
     };
 
     const handleSubmit = () => {
-        if (!name.trim()) return alert('Name is required');
-        if (type === 'file' && !file) return alert('Please select a file');
+        if (!name.trim()) return message.warning('Name is required');
+        if (type === 'file' && !file) return message.warning('Please select a file');
 
         onSave({
             name,
