@@ -60,7 +60,10 @@ export default function HomePage() {
 		const delayDebounce = setTimeout(() => {
 			fetchFileNodes(folderQuery);
 			syncQueryToUrl(folderQuery);
-			fetchBreadcrumbs(folderQuery.fileNodeParentId!);
+			if (folderQuery.fileNodeParentId) {
+				fetchBreadcrumbs(folderQuery.fileNodeParentId);
+			}
+
 		}, 250);
 
 		return () => clearTimeout(delayDebounce);
