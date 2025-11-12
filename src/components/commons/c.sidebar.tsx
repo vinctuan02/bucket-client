@@ -21,6 +21,12 @@ const sidebarNavItems = [
 		to: '/home',
 		section: 'home',
 	},
+	// {
+	// 	display: 'Share',
+	// 	icon: <Folder size={18} strokeWidth={2.5} />,
+	// 	to: '/share',
+	// 	section: 'share',
+	// },
 	{
 		display: 'Users',
 		icon: <Users size={18} strokeWidth={2.5} />,
@@ -96,15 +102,17 @@ export default function Sidebar() {
 					ref={indicatorRef}
 					className="sidebar__menu__indicator"
 					style={{
-						transform: `translateX(-50%) translateY(${activeIndex * stepHeight
-							}px)`,
+						transform: `translateX(-50%) translateY(${
+							activeIndex * stepHeight
+						}px)`,
 					}}
 				></div>
 				{sidebarNavItems.map((item, index) => (
 					<Link href={item.to} key={index}>
 						<div
-							className={`sidebar__menu__item ${activeIndex === index ? 'active' : ''
-								}`}
+							className={`sidebar__menu__item ${
+								activeIndex === index ? 'active' : ''
+							}`}
 						>
 							<div className="sidebar__menu__item__icon">
 								{item.icon}

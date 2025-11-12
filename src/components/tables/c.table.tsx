@@ -43,7 +43,7 @@ export default function Table<T extends { id?: number | string }>({
 	onPageChange,
 	onSortChange,
 	onRowClick,
-	loading
+	loading,
 }: TableProps<T>) {
 	const [search, setSearch] = useState('');
 	const [fieldOrder, setFieldOrder] = useState('');
@@ -92,7 +92,7 @@ export default function Table<T extends { id?: number | string }>({
 
 		let newDirection =
 			fieldOrder === col.orderField &&
-				orderDirection === OrderDirection.ASC
+			orderDirection === OrderDirection.ASC
 				? OrderDirection.DESC
 				: OrderDirection.ASC;
 
@@ -137,9 +137,9 @@ export default function Table<T extends { id?: number | string }>({
 										{col.orderField && (
 											<>
 												{fieldOrder ===
-													col.orderField ? (
+												col.orderField ? (
 													orderDirection ===
-														OrderDirection.ASC ? (
+													OrderDirection.ASC ? (
 														<ArrowUp size={14} />
 													) : (
 														<ArrowDown size={14} />
@@ -165,12 +165,24 @@ export default function Table<T extends { id?: number | string }>({
 									onClick={() => onRowClick?.(row)}
 								>
 									{columns.map((col) => {
-										const value = col.field.split('.').reduce((acc, key) => acc?.[key], row);
-										return <td key={col.field}>{value ?? '-'}</td>;
+										const value = col.field
+											.split('.')
+											.reduce(
+												(acc, key) => acc?.[key],
+												row,
+											);
+										return (
+											<td key={col.field}>
+												{value ?? '-'}
+											</td>
+										);
 									})}
 
 									{(onEdit || onDelete) && (
-										<td className="table__actions" onClick={(e) => e.stopPropagation()}>
+										<td
+											className="table__actions"
+											onClick={(e) => e.stopPropagation()}
+										>
 											{onEdit && (
 												<button
 													className="icon-btn edit"
@@ -182,7 +194,9 @@ export default function Table<T extends { id?: number | string }>({
 											{onDelete && (
 												<button
 													className="icon-btn delete"
-													onClick={() => onDelete(row.id!)}
+													onClick={() =>
+														onDelete(row.id!)
+													}
 												>
 													<Trash2 size={16} />
 												</button>
@@ -193,11 +207,15 @@ export default function Table<T extends { id?: number | string }>({
 							))
 						) : (
 							<tr>
-								<td colSpan={columns.length + 1} style={{ textAlign: 'center' }}>No data</td>
+								<td
+									colSpan={columns.length + 1}
+									style={{ textAlign: 'center' }}
+								>
+									No data
+								</td>
 							</tr>
 						)}
 					</tbody>
-
 				</table>
 
 				{loading && (
@@ -231,8 +249,9 @@ export default function Table<T extends { id?: number | string }>({
 						{renderPageNumbers()?.map((page, index) => (
 							<button
 								key={index}
-								className={`page-btn ${page === pagination.page ? 'active' : ''
-									} ${page === '...' ? 'dots' : ''}`}
+								className={`page-btn ${
+									page === pagination.page ? 'active' : ''
+								} ${page === '...' ? 'dots' : ''}`}
 								onClick={() =>
 									typeof page === 'number' &&
 									handlePageChange(page)
