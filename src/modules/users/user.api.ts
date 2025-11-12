@@ -13,6 +13,16 @@ export const userApi = {
 		return res.data;
 	},
 
+	getListSimple: async (params?: GetListUserDto) => {
+		const res = await api.get<ResponseSuccess<PageDto<User>>>(
+			`${BASE_URL}/simple`,
+			{
+				params,
+			},
+		);
+		return res.data;
+	},
+
 	getOne: async (id: string) => {
 		const res = await api.get<ResponseSuccess<User>>(`${BASE_URL}/${id}`);
 		return res.data;

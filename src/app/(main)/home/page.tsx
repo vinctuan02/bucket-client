@@ -17,6 +17,7 @@ import { authApi } from '@/modules/auth/auth.api';
 import CreateMenu from '@/modules/home/components/home.c.create-menu';
 import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
 import FilePreview from '@/modules/commons/components/common.c.read-file';
+import FileNodeShareModal from '@/modules/home/components/file-node-permission.c.modal';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -30,6 +31,7 @@ export default function HomePage() {
 	const [showMenu, setShowMenu] = useState(false);
 	const [breadcrumbs, setBreadcrumbs] = useState<FileNode[]>([]);
 	const [previewId, setPreviewId] = useState<string | null>(null);
+	const [shareModal, setShareModal] = useState<{ visible: boolean; fileNodeId?: string }>({ visible: false });
 
 
 	const [folderQuery, setFolderQuery] = useState<GetlistFileNodeDto>(
@@ -263,6 +265,7 @@ export default function HomePage() {
 					onPageChange={handlePageChange}
 					onSortChange={handleSortChange}
 					onRowClick={handleRowClick}
+					onShare={(row) => setShareModal({ visible: true, fileNodeId: row.id })}
 				/>
 
 				{showMenu && (
@@ -301,6 +304,19 @@ export default function HomePage() {
 						onClose={() => setPreviewId(null)}
 					/>
 				)}
+
+				{shareModal.visible && (
+					<FileNodeShareModal
+						visible={shareModal.visible}
+						fileNodeId={shareModal.fileNodeId!}
+						onClose={() => setShareModal({ visible: false })}
+						onSave={async (permissions) => {
+							await fetchFileNodes(folderQuery);
+						}}
+					/>
+				)}
+
+
 			</div>
 		</Page>
 	);

@@ -6,3 +6,8 @@ export enum FileNodeFM {
 }
 
 export enum FileNodeFieldOrder {}
+
+export enum ShareType {
+	DIRECT = 'DIRECT',
+	INDIRECT = 'INDIRECT',
+}

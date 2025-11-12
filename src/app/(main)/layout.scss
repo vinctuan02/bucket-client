@@ -34,10 +34,11 @@
       border-radius: 20px;
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      min-height: calc(100vh - 120px);
+      // min-height: calc(100vh - 120px);
+      // max-height: calc(100vh - 300px);
       flex: 1;
       // overflow-y: auto;
-       overflow: hidden;
+      //  overflow: hidden;
     }
   }
 }

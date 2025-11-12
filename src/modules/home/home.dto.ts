@@ -1,5 +1,5 @@
 import { BaseQueryDto } from '../commons/dto/common.dto';
-import { FileNodeFM } from './home.enum';
+import { FileNodeFM, ShareType } from './home.enum';
 
 export interface FileMetadata {
 	fileName: string;
@@ -30,4 +30,21 @@ export class GetlistFileNodeDto extends BaseQueryDto {
 		super();
 		Object.assign(this, init);
 	}
+}
+
+export interface UpsertFileNodePermissionDto {
+	fileNodeId?: string;
+	userId?: string | null;
+	canView?: boolean;
+	canEdit?: boolean;
+	canDelete?: boolean;
+	canUpload?: boolean;
+	canShare?: boolean;
+	shareType?: ShareType;
+	inheritedFrom?: string | null;
+}
+
+export interface BulkUpdateFileNodePermissionDto {
+	upsert?: UpsertFileNodePermissionDto[];
+	remove?: string[];
 }

@@ -1,6 +1,11 @@
 import { PageDto, ResponseSuccess } from '@/types/type.response';
 import api from '../commons/const/common.const.api';
-import { CreateFileDto, CreateFolderDto, GetlistFileNodeDto } from './home.dto';
+import {
+	BulkUpdateFileNodePermissionDto,
+	CreateFileDto,
+	CreateFolderDto,
+	GetlistFileNodeDto,
+} from './home.dto';
 import { FileNode } from './home.entity';
 
 const BASE_URL = '/file-manager';
@@ -77,6 +82,11 @@ export const fileNodeManagerApi = {
 
 	createFile: async (data: CreateFileDto) =>
 		await api.post(`${BASE_URL}/file`, data),
+
+	bulkUpdatePermissions: async (
+		id: string,
+		dto: BulkUpdateFileNodePermissionDto,
+	) => await api.put(`${BASE_URL}/${id}/bulk/permission`, dto),
 
 	// updateFolder: async (id: string, data: UpdateFolderDto) =>
 	// 	await api.patch(`${BASE_URL}/${id}`, data),

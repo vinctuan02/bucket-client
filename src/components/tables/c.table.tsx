@@ -6,12 +6,10 @@ import {
 	PaginationInfo,
 } from '@/modules/commons/interface/common.interface';
 import {
-	ArrowDown,
-	ArrowUp,
-	ArrowUpDown,
 	ChevronLeft,
 	ChevronRight,
 	Pencil,
+	Share2,
 	SplinePointer,
 	Trash2,
 } from 'lucide-react';
@@ -23,6 +21,7 @@ interface TableProps<T> {
 	columns: IConfigTableColumn[];
 	onEdit?: (row: T) => void;
 	onDelete?: (id: string) => void;
+	onShare?: (row: T) => void;
 	onCreate?: () => void;
 	onSearch?: (value: string) => void;
 	pagination?: PaginationInfo;
@@ -35,6 +34,7 @@ interface TableProps<T> {
 export default function Table<T extends { id?: number | string }>({
 	data,
 	columns,
+	onShare,
 	onEdit,
 	onDelete,
 	onCreate,
@@ -92,13 +92,37 @@ export default function Table<T extends { id?: number | string }>({
 
 		let newDirection =
 			fieldOrder === col.orderField &&
-			orderDirection === OrderDirection.ASC
+				orderDirection === OrderDirection.ASC
 				? OrderDirection.DESC
 				: OrderDirection.ASC;
 
 		setFieldOrder(col.orderField);
 		setOrderDirection(newDirection);
 		onSortChange?.(col.orderField, newDirection);
+	};
+
+	// Render sort icon like Ant Design
+	const renderSortIcon = (col: IConfigTableColumn) => {
+		if (!col.orderField) return null;
+
+		const isActive = fieldOrder === col.orderField;
+		const isAscActive = isActive && orderDirection === OrderDirection.ASC;
+		const isDescActive = isActive && orderDirection === OrderDirection.DESC;
+
+		return (
+			<span className="sort-icon">
+				<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+					<path
+						d="M7 3L9 5H5L7 3Z"
+						fill={isAscActive ? '#1890ff' : 'rgba(0, 0, 0, 0.25)'}
+					/>
+					<path
+						d="M7 11L5 9H9L7 11Z"
+						fill={isDescActive ? '#1890ff' : 'rgba(0, 0, 0, 0.25)'}
+					/>
+				</svg>
+			</span>
+		);
 	};
 
 	return (
@@ -134,21 +158,7 @@ export default function Table<T extends { id?: number | string }>({
 								>
 									<div className="th-content">
 										<span>{col.label}</span>
-										{col.orderField && (
-											<>
-												{fieldOrder ===
-												col.orderField ? (
-													orderDirection ===
-													OrderDirection.ASC ? (
-														<ArrowUp size={14} />
-													) : (
-														<ArrowDown size={14} />
-													)
-												) : (
-													<ArrowUpDown size={14} />
-												)}
-											</>
-										)}
+										{renderSortIcon(col)}
 									</div>
 								</th>
 							))}
@@ -178,27 +188,21 @@ export default function Table<T extends { id?: number | string }>({
 										);
 									})}
 
-									{(onEdit || onDelete) && (
-										<td
-											className="table__actions"
-											onClick={(e) => e.stopPropagation()}
-										>
+									{(onEdit || onDelete || onShare) && (
+										<td className="table__actions" onClick={(e) => e.stopPropagation()}>
 											{onEdit && (
-												<button
-													className="icon-btn edit"
-													onClick={() => onEdit(row)}
-												>
+												<button className="icon-btn edit" onClick={() => onEdit(row)}>
 													<Pencil size={16} />
 												</button>
 											)}
 											{onDelete && (
-												<button
-													className="icon-btn delete"
-													onClick={() =>
-														onDelete(row.id!)
-													}
-												>
+												<button className="icon-btn delete" onClick={() => onDelete(row.id!)}>
 													<Trash2 size={16} />
+												</button>
+											)}
+											{onShare && (
+												<button className="icon-btn share" onClick={() => onShare(row)}>
+													<Share2 size={16} />
 												</button>
 											)}
 										</td>
@@ -249,9 +253,8 @@ export default function Table<T extends { id?: number | string }>({
 						{renderPageNumbers()?.map((page, index) => (
 							<button
 								key={index}
-								className={`page-btn ${
-									page === pagination.page ? 'active' : ''
-								} ${page === '...' ? 'dots' : ''}`}
+								className={`page-btn ${page === pagination.page ? 'active' : ''
+									} ${page === '...' ? 'dots' : ''}`}
 								onClick={() =>
 									typeof page === 'number' &&
 									handlePageChange(page)
