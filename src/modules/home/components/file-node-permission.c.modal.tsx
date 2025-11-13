@@ -1,43 +1,89 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import { Checkbox, Input, Button } from 'antd';
+import { Checkbox, Input, Button, message } from 'antd';
 import { userApi } from '@/modules/users/user.api';
-import { UpsertFileNodePermissionDto } from '../home.dto';
+import { fileNodeManagerApi } from '@/modules/home/home.api';
+import { UpsertFileNodePermissionDto, BulkUpdateFileNodePermissionDto } from '../home.dto';
 import { User } from '@/modules/users/user.entity';
 import { GetListUserDto } from '@/modules/users/user.dto';
+import { FileNodePermission } from '@/modules/home/home.entity';
 import './file-node-permission.c.modal.scss';
 
 interface Props {
     fileNodeId: string;
     visible: boolean;
     onClose: () => void;
-    onSave: (permissions: UpsertFileNodePermissionDto[]) => void;
+    onAfterSave?: () => void;
 }
 
 interface UserRow extends User {
     canView: boolean;
     canEdit: boolean;
-    canDelete: boolean;
-    canUpload: boolean;
-    canShare: boolean;
+    // canDelete: boolean;
+    // canUpload: boolean;
+    // canShare: boolean;
+    permissionId?: string; // ID của permission record
 }
 
-export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSave }: Props) {
-    const [users, setUsers] = useState<UserRow[]>([]); // user đã chọn
-    const [searchResults, setSearchResults] = useState<User[]>([]); // kết quả tìm
+export default function FileNodeShareModal({
+    fileNodeId,
+    visible,
+    onClose,
+    onAfterSave,
+}: Props) {
+    const [users, setUsers] = useState<UserRow[]>([]);
+    const [searchResults, setSearchResults] = useState<User[]>([]);
     const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [removedPermissionIds, setRemovedPermissionIds] = useState<string[]>([]);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    // mở modal reset
     useEffect(() => {
-        if (visible) {
+        if (!visible) {
             setUsers([]);
+            setRemovedPermissionIds([]);
             setSearch('');
             setSearchResults([]);
+            return;
         }
-    }, [visible]);
 
-    // debounce search
+        let isMounted = true;
+        const fetchPermissions = async () => {
+            setLoading(true);
+            try {
+                const permissions = await fileNodeManagerApi.getPermissions(fileNodeId);
+                if (!isMounted) return;
+
+                const userRows: UserRow[] = permissions
+                    .filter(p => p.user)
+                    .map(p => ({
+                        ...p.user!,
+                        canView: p.canView,
+                        canEdit: p.canEdit,
+                        // canDelete: p.canDelete,
+                        // canUpload: p.canUpload,
+                        // canShare: p.canShare,
+                        permissionId: p.id, // lưu permissionId
+                    }));
+
+                setUsers(userRows);
+            } catch (err) {
+                console.error(err);
+                message.error('Failed to load permissions');
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        fetchPermissions();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [visible, fileNodeId]);
+
+    // debounce search user
     useEffect(() => {
         if (!search.trim()) {
             setSearchResults([]);
@@ -51,15 +97,13 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
                 const params = new GetListUserDto({ keywords: search });
                 const res = await userApi.getListSimple(params);
                 const data = res?.data?.items ?? [];
-
-                // lọc những user đã chọn rồi
                 const filtered = data.filter(u => !users.some(su => su.id === u.id));
                 setSearchResults(filtered);
             } catch (err) {
                 console.error(err);
                 setSearchResults([]);
             }
-        }, 500);
+        }, 400);
 
         return () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -70,35 +114,61 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
         const newUser: UserRow = {
             ...user,
             canView: true,
-            canEdit: true,
-            canDelete: true,
-            canUpload: true,
-            canShare: true,
+            canEdit: false,
+            // canDelete: false,
+            // canUpload: false,
+            // canShare: false,
+            // không có permissionId vì chưa save
         };
         setUsers(prev => [...prev, newUser]);
         setSearchResults(prev => prev.filter(u => u.id !== user.id));
     };
 
     const handleRemoveUser = (userId: string) => {
+        const user = users.find(u => u.id === userId);
+
+        // Nếu có permissionId -> thêm vào mảng remove
+        if (user?.permissionId) {
+            setRemovedPermissionIds(prev => [...prev, user.permissionId!]);
+        }
+
         setUsers(prev => prev.filter(u => u.id !== userId));
     };
 
     const handleCheck = (userId: string, field: keyof UserRow, value: boolean) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, [field]: value } : u));
+        setUsers(prev => prev.map(u => (u.id === userId ? { ...u, [field]: value } : u)));
     };
 
-    const handleSave = () => {
-        const permissions: UpsertFileNodePermissionDto[] = users.map(u => ({
-            fileNodeId,
-            userId: u.id,
-            canView: u.canView,
-            canEdit: u.canEdit,
-            canDelete: u.canDelete,
-            canUpload: u.canUpload,
-            canShare: u.canShare,
-        }));
-        onSave(permissions);
-        onClose();
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+
+            const upsert: UpsertFileNodePermissionDto[] = users.map(u => ({
+                fileNodeId,
+                userId: u.id,
+                canView: u.canView,
+                canEdit: u.canEdit,
+                // canDelete: u.canDelete,
+                // canUpload: u.canUpload,
+                // canShare: u.canShare,
+            }));
+
+            const dto: BulkUpdateFileNodePermissionDto = {
+                upsert,
+                remove: removedPermissionIds
+            };
+
+            await fileNodeManagerApi.bulkUpdatePermissions(fileNodeId, dto);
+            message.success('Permissions updated successfully');
+
+            onClose();
+            onAfterSave?.();
+        } catch (err) {
+            console.error('Bulk update permissions failed:', err);
+            message.error('Failed to update permissions');
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (!visible) return null;
@@ -107,8 +177,8 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
         <div className="modal-backdrop">
             <div className="modal">
                 <div className="modal-header">
-                    {/* <h3>Share File</h3> */}
-                    {/* <button onClick={onClose}>×</button> */}
+                    <h3>Share File / Folder</h3>
+                    <button onClick={onClose}>×</button>
                 </div>
 
                 <div className="modal-body">
@@ -129,7 +199,9 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
                         </div>
                     )}
 
-                    {users.length > 0 ? (
+                    {loading ? (
+                        <div className="loading">Loading permissions...</div>
+                    ) : users.length > 0 ? (
                         <table className="permission-table">
                             <thead>
                                 <tr>
@@ -137,9 +209,9 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
                                     <th>Email</th>
                                     <th>View</th>
                                     <th>Edit</th>
-                                    <th>Delete</th>
+                                    {/* <th>Delete</th>
                                     <th>Upload</th>
-                                    <th>Share</th>
+                                    <th>Share</th> */}
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -150,9 +222,9 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
                                         <td>{user.email}</td>
                                         <td><Checkbox checked={user.canView} onChange={e => handleCheck(user.id, 'canView', e.target.checked)} /></td>
                                         <td><Checkbox checked={user.canEdit} onChange={e => handleCheck(user.id, 'canEdit', e.target.checked)} /></td>
-                                        <td><Checkbox checked={user.canDelete} onChange={e => handleCheck(user.id, 'canDelete', e.target.checked)} /></td>
+                                        {/* <td><Checkbox checked={user.canDelete} onChange={e => handleCheck(user.id, 'canDelete', e.target.checked)} /></td>
                                         <td><Checkbox checked={user.canUpload} onChange={e => handleCheck(user.id, 'canUpload', e.target.checked)} /></td>
-                                        <td><Checkbox checked={user.canShare} onChange={e => handleCheck(user.id, 'canShare', e.target.checked)} /></td>
+                                        <td><Checkbox checked={user.canShare} onChange={e => handleCheck(user.id, 'canShare', e.target.checked)} /></td> */}
                                         <td>
                                             <Button size="small" danger onClick={() => handleRemoveUser(user.id)}>Remove</Button>
                                         </td>
@@ -161,13 +233,15 @@ export default function FileNodeShareModal({ fileNodeId, visible, onClose, onSav
                             </tbody>
                         </table>
                     ) : (
-                        <div className="no-users">No users selected</div>
+                        <div className="no-users">No permissions found</div>
                     )}
                 </div>
 
                 <div className="modal-footer">
                     <button className="btn btn-gray" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-blue" onClick={handleSave}>Save</button>
+                    <button className="btn btn-blue" onClick={handleSave} disabled={saving}>
+                        {saving ? 'Saving...' : 'Save'}
+                    </button>
                 </div>
             </div>
         </div>

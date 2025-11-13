@@ -6,7 +6,7 @@ import {
 	CreateFolderDto,
 	GetlistFileNodeDto,
 } from './home.dto';
-import { FileNode } from './home.entity';
+import { FileNode, FileNodePermission } from './home.entity';
 
 const BASE_URL = '/file-manager';
 
@@ -48,6 +48,15 @@ export const fileNodeManagerApi = {
 	getOneWithChildrens: async (id: string) =>
 		await api.get(`${BASE_URL}/${id}/with-childrens`),
 
+	getPermissions: async (id: string): Promise<FileNodePermission[]> => {
+		const res = await api.get<ResponseSuccess<FileNodePermission[]>>(
+			`${BASE_URL}/${id}/permissions`,
+		);
+
+		// Trả về data bên trong res.data.data
+		return res.data.data ?? [];
+	},
+
 	getOneFullTree: async (id: string) =>
 		await api.get(`${BASE_URL}/${id}/full-tree`),
 
@@ -86,7 +95,10 @@ export const fileNodeManagerApi = {
 	bulkUpdatePermissions: async (
 		id: string,
 		dto: BulkUpdateFileNodePermissionDto,
-	) => await api.put(`${BASE_URL}/${id}/bulk/permission`, dto),
+	) => {
+		const res = await api.put(`${BASE_URL}/${id}/bulk/permission`, dto);
+		return res.data;
+	},
 
 	// updateFolder: async (id: string, data: UpdateFolderDto) =>
 	// 	await api.patch(`${BASE_URL}/${id}`, data),

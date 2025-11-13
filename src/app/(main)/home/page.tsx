@@ -310,7 +310,7 @@ export default function HomePage() {
 						visible={shareModal.visible}
 						fileNodeId={shareModal.fileNodeId!}
 						onClose={() => setShareModal({ visible: false })}
-						onSave={async (permissions) => {
+						onAfterSave={async () => {
 							await fetchFileNodes(folderQuery);
 						}}
 					/>
