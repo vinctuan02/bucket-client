@@ -1,9 +1,12 @@
 // types/user.ts
 
-import { BaseUserUUIDEntity } from '../commons/entities/common.entity';
+import {
+	BaseUserUUIDEntity,
+	BaseUUIDEntity,
+} from '../commons/entities/common.entity';
 import { Role } from '../roles/role.entity';
 
-export interface User extends BaseUserUUIDEntity {
+export interface User extends BaseUUIDEntity {
 	name: string;
 	email: string;
 	password?: string | null;

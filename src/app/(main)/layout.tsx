@@ -2,6 +2,7 @@
 
 import Header from '@/components/commons/c.header';
 import Sidebar from '@/components/commons/c.sidebar';
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { useEffect, useState } from 'react';
 import './globals.css';
 import './layout.scss';
@@ -54,19 +55,21 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className="root-layout">
-				<Sidebar />
-				<div className="layout-main">
-					<div
-						className={`layout-header ${headerVisible ? '' : 'hidden'}`}
-					>
-						<div className="header-wrapper">
-							<Header />
+				<AntdRegistry>
+					<Sidebar />
+					<div className="layout-main">
+						<div
+							className={`layout-header ${headerVisible ? '' : 'hidden'}`}
+						>
+							<div className="header-wrapper">
+								<Header />
+							</div>
 						</div>
-					</div>
 
-					<div className="layout-header-space" />
-					<main className="layout-content">{children}</main>
-				</div>
+						<div className="layout-header-space" />
+						<main className="layout-content">{children}</main>
+					</div>
+				</AntdRegistry>
 			</body>
 		</html>
 	);

@@ -4,14 +4,14 @@ import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { rolesApi } from '@/modules/roles/role.api';
 import { rolesConifgsColumnTable } from '@/modules/roles/role.constant';
 import { GetListRoleDto } from '@/modules/roles/role.dto';
+import { Role } from '@/modules/roles/role.entity';
 import { RoleFieldMapping } from '@/modules/roles/role.enum';
 import { User, UserRole } from '@/modules/users/user.entity';
+import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import Page from '../../../components/pages/c.page';
 import TableSelect from '../../../components/table-selector/c.table-selector';
 import './modal.scss';
-import { Role } from '@/modules/roles/role.entity';
-import { message } from 'antd';
 
 interface UserModalProps {
 	initialData?: Partial<User>;

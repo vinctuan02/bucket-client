@@ -5,14 +5,10 @@ import {
 	IConfigTableColumn,
 	PaginationInfo,
 } from '@/modules/commons/interface/common.interface';
-import {
-	ArrowDown,
-	ArrowUp,
-	ArrowUpDown,
-	ChevronLeft,
-	ChevronRight,
-} from 'lucide-react';
+import type { TableProps as AntTableProps } from 'antd';
+import { Table as AntTable, Input } from 'antd';
 import React, { useState } from 'react';
+import './c.table-selector.scss';
 
 interface TableSelectProps<T> {
 	data: T[];
@@ -36,10 +32,6 @@ export default function TableSelect<T extends { id?: string }>({
 	onSearch,
 }: TableSelectProps<T>) {
 	const [search, setSearch] = useState('');
-	const [fieldOrder, setFieldOrder] = useState('');
-	const [orderDirection, setOrderDirection] = useState<OrderDirection>(
-		OrderDirection.ASC,
-	);
 
 	// search
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,219 +40,121 @@ export default function TableSelect<T extends { id?: string }>({
 		onSearch?.(value);
 	};
 
-	// pagination
-	const handlePageChange = (page: number) => {
-		if (page >= 1 && page <= (pagination?.totalPages || 1)) {
-			onPageChange?.(page);
+	// Helper to get nested value
+	const getNestedValue = (obj: any, path: string) => {
+		return path.split('.').reduce((acc, key) => acc?.[key], obj);
+	};
+
+	// Convert custom columns to Ant Design columns
+	const antColumns: AntTableProps<T>['columns'] = columns.map((col) => ({
+		title: col.label,
+		dataIndex: col.field.split('.'),
+		key: col.field,
+		width: col.width ? `${col.width}%` : undefined,
+		sorter: col.orderField ? true : false,
+		sortDirections: col.orderField
+			? (['ascend', 'descend', 'ascend'] as any)
+			: undefined,
+		showSorterTooltip: false,
+		orderField: col.orderField,
+		render: (value: any, record: T) => {
+			// Use custom render if provided
+			if (col.render) {
+				const actualValue = getNestedValue(record, col.field);
+				return col.render(actualValue, record);
+			}
+
+			const actualValue = getNestedValue(record, col.field);
+
+			// Handle date values
+			if (
+				actualValue &&
+				(col.field.includes('At') || col.field.includes('Date'))
+			) {
+				try {
+					const date = new Date(actualValue);
+					const dateStr = date.toLocaleDateString('vi-VN', {
+						year: 'numeric',
+						month: '2-digit',
+						day: '2-digit',
+					});
+					return dateStr;
+				} catch {
+					return actualValue;
+				}
+			}
+
+			return actualValue ?? '-';
+		},
+	}));
+
+	// Handle table change (pagination, sorting)
+	const handleTableChange: AntTableProps<T>['onChange'] = (
+		paginationConfig,
+		_filters,
+		sorter,
+	) => {
+		// Handle pagination
+		if (paginationConfig.current && onPageChange) {
+			onPageChange(paginationConfig.current);
+		}
+
+		// Handle sorting
+		if (!Array.isArray(sorter) && onSortChange) {
+			if (sorter.order) {
+				const direction =
+					sorter.order === 'ascend'
+						? OrderDirection.ASC
+						: OrderDirection.DESC;
+				const orderField = (sorter.column as any)?.orderField;
+				if (orderField) {
+					onSortChange(orderField, direction);
+				}
+			}
 		}
 	};
 
-	// sort
-	const handleSort = (col: IConfigTableColumn) => {
-		if (!col.orderField) return;
-		const newDirection =
-			fieldOrder === col.orderField &&
-			orderDirection === OrderDirection.ASC
-				? OrderDirection.DESC
-				: OrderDirection.ASC;
-
-		setFieldOrder(col.orderField);
-		setOrderDirection(newDirection);
-		onSortChange?.(col.orderField, newDirection);
-	};
-
-	// select
-	const handleSelectRow = (id: string) => {
-		const newSelected = selectedKeys.includes(id)
-			? selectedKeys.filter((k) => k !== id)
-			: [...selectedKeys, id];
-		onSelectChange(newSelected);
-	};
-
-	const handleSelectAll = () => {
-		if (selectedKeys.length === data.length) onSelectChange([]);
-		else onSelectChange(data.map((d) => d.id!));
-	};
-
-	// render page numbers
-	const renderPageNumbers = () => {
-		if (!pagination) return null;
-		const { page, totalPages } = pagination;
-		const pages: (number | string)[] = [];
-
-		if (totalPages <= 7) {
-			for (let i = 1; i <= totalPages; i++) pages.push(i);
-		} else {
-			pages.push(1);
-			if (page > 3) pages.push('...');
-			const start = Math.max(2, page - 1);
-			const end = Math.min(totalPages - 1, page + 1);
-			for (let i = start; i <= end; i++) pages.push(i);
-			if (page < totalPages - 2) pages.push('...');
-			pages.push(totalPages);
-		}
-		return pages;
+	// Row selection config
+	const rowSelection = {
+		selectedRowKeys: selectedKeys,
+		onChange: (selectedRowKeys: React.Key[]) => {
+			onSelectChange(selectedRowKeys as string[]);
+		},
 	};
 
 	return (
-		<div className="table-wrapper">
+		<div className="table-selector-wrapper">
 			{/* Toolbar */}
 			<div className="toolbar">
-				<input
-					type="text"
+				<Input
 					placeholder="Search..."
 					className="search-input"
 					value={search}
 					onChange={handleSearchChange}
+					style={{ width: 280 }}
 				/>
 			</div>
 
-			{/* Table */}
-			<div className="table-container">
-				<table className="custom-table">
-					<thead>
-						<tr>
-							<th style={{ width: 40 }}>
-								<input
-									type="checkbox"
-									checked={
-										selectedKeys.length === data.length &&
-										data.length > 0
-									}
-									onChange={handleSelectAll}
-								/>
-							</th>
-							{columns.map((col) => (
-								<th
-									key={col.field}
-									onClick={() => handleSort(col)}
-									className={col.orderField ? 'sortable' : ''}
-								>
-									<div className="th-content">
-										<span>{col.label}</span>
-										{col.orderField && (
-											<>
-												{fieldOrder ===
-												col.orderField ? (
-													orderDirection ===
-													OrderDirection.ASC ? (
-														<ArrowUp size={14} />
-													) : (
-														<ArrowDown size={14} />
-													)
-												) : (
-													<ArrowUpDown size={14} />
-												)}
-											</>
-										)}
-									</div>
-								</th>
-							))}
-						</tr>
-					</thead>
-
-					<tbody>
-						{data?.length ? (
-							data.map((row: any) => (
-								<tr
-									key={row.id}
-									className={
-										selectedKeys.includes(row.id)
-											? 'selected'
-											: ''
-									}
-									onClick={() => handleSelectRow(row.id!)}
-								>
-									<td>
-										<input
-											type="checkbox"
-											checked={selectedKeys.includes(
-												row.id!,
-											)}
-											onChange={() =>
-												handleSelectRow(row.id!)
-											}
-											onClick={(e) => e.stopPropagation()}
-										/>
-									</td>
-									{columns.map((col) => {
-										const value = col.field
-											.split('.')
-											.reduce(
-												(acc, key) => acc?.[key],
-												row,
-											);
-										return (
-											<td key={col.field}>
-												{value ?? '-'}
-											</td>
-										);
-									})}
-								</tr>
-							))
-						) : (
-							<tr>
-								<td
-									colSpan={columns.length + 1}
-									style={{ textAlign: 'center' }}
-								>
-									No data
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
-			</div>
-
-			{/* Pagination */}
-			{pagination && (
-				<div className="pagination">
-					<div className="pagination-info">
-						{`${(pagination.page - 1) * pagination.itemsPerPage + 1}-${Math.min(
-							pagination.page * pagination.itemsPerPage,
-							pagination.totalItems,
-						)} / ${pagination.totalItems}`}
-					</div>
-
-					<div className="pagination-controls">
-						<button
-							className="page-btn"
-							onClick={() =>
-								handlePageChange(pagination.page - 1)
+			{/* Ant Design Table */}
+			<AntTable<T>
+				columns={antColumns}
+				dataSource={data}
+				rowKey={(record) => record.id as string}
+				rowSelection={rowSelection}
+				pagination={
+					pagination
+						? {
+								current: pagination.page,
+								pageSize: pagination.itemsPerPage,
+								total: pagination.totalItems,
+								showSizeChanger: false,
+								showTotal: (total, range) =>
+									`${range[0]}-${range[1]} / ${total}`,
 							}
-							disabled={pagination.page === 1}
-						>
-							<ChevronLeft size={18} />
-						</button>
-
-						{renderPageNumbers()?.map((page, index) => (
-							<button
-								key={index}
-								className={`page-btn ${page === pagination.page ? 'active' : ''} ${
-									page === '...' ? 'dots' : ''
-								}`}
-								onClick={() =>
-									typeof page === 'number' &&
-									handlePageChange(page)
-								}
-								disabled={page === '...'}
-							>
-								{page}
-							</button>
-						))}
-
-						<button
-							className="page-btn"
-							onClick={() =>
-								handlePageChange(pagination.page + 1)
-							}
-							disabled={pagination.page === pagination.totalPages}
-						>
-							<ChevronRight size={18} />
-						</button>
-					</div>
-				</div>
-			)}
+						: false
+				}
+				onChange={handleTableChange}
+			/>
 		</div>
 	);
 }

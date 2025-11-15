@@ -20,12 +20,14 @@ export default function RolesPage() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingRole, setEditingRole] = useState<Partial<Role>>(roleDefault);
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
+	const [loading, setLoading] = useState(false);
 
 	const [roleQuery, setRoleQuery] = useState<GetListRoleDto>(
 		new GetListRoleDto({ fieldOrder: RoleFieldMapping.NAME }),
 	);
 
 	const fetchRoles = async (params?: GetListRoleDto) => {
+		setLoading(true);
 		try {
 			const { data } = await rolesApi.getList(params);
 			setRoles(data?.items ?? []);
@@ -39,6 +41,8 @@ export default function RolesPage() {
 			}
 		} catch (err) {
 			console.error('Error fetching roles:', err);
+		} finally {
+			setLoading(false);
 		}
 	};
 

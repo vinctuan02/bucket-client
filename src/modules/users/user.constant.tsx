@@ -1,7 +1,8 @@
+import { Switch } from 'antd';
 import { IConfigTableColumn } from '../commons/interface/common.interface';
 import { UserFM } from './user.enum';
 
-export const usersConifgsColumnTable: IConfigTableColumn[] = [
+export const usersConfigsColumnTable: IConfigTableColumn[] = [
 	{ field: 'name', label: 'Name', orderField: UserFM.NAME },
 	{
 		field: 'email',
@@ -12,6 +13,9 @@ export const usersConifgsColumnTable: IConfigTableColumn[] = [
 		field: 'isActive',
 		label: 'Active',
 		orderField: UserFM.IS_ACTIVE,
+		render: (value: boolean) => (
+			<Switch checked={value} disabled size="small" />
+		),
 	},
 	{
 		label: 'Created At',

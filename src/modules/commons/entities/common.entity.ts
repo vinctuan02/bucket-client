@@ -9,3 +9,9 @@ export interface BaseUserUUIDEntity {
 	creator?: User | null;
 	modifier?: User | null;
 }
+
+export interface BaseUUIDEntity {
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+}

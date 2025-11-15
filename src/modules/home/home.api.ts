@@ -4,14 +4,14 @@ import {
 	BulkUpdateFileNodePermissionDto,
 	CreateFileDto,
 	CreateFolderDto,
-	GetlistFileNodeDto,
+	GetListFileNodeDto,
 } from './home.dto';
 import { FileNode, FileNodePermission } from './home.entity';
 
 const BASE_URL = '/file-manager';
 
 export const fileNodeManagerApi = {
-	getList: async (params?: GetlistFileNodeDto) => {
+	getList: async (params?: GetListFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			BASE_URL,
 			{ params },
@@ -19,7 +19,7 @@ export const fileNodeManagerApi = {
 		return res.data;
 	},
 
-	getHome: async (params?: GetlistFileNodeDto) => {
+	getHome: async (params?: GetListFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			`${BASE_URL}/home`,
 			{ params },
@@ -27,15 +27,15 @@ export const fileNodeManagerApi = {
 		return res.data;
 	},
 
-	getListWithChildrens: async (params?: GetlistFileNodeDto) => {
+	getListWithChildren: async (params?: GetListFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
-			`${BASE_URL}/with-childrens`,
+			`${BASE_URL}/with-children`,
 			{ params },
 		);
 		return res.data;
 	},
 
-	getListFullTree: async (params?: GetlistFileNodeDto) => {
+	getListFullTree: async (params?: GetListFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			`${BASE_URL}/full-tree`,
 			{ params },
@@ -45,8 +45,8 @@ export const fileNodeManagerApi = {
 
 	getOne: async (id: string) => await api.get(`${BASE_URL}/${id}`),
 
-	getOneWithChildrens: async (id: string) =>
-		await api.get(`${BASE_URL}/${id}/with-childrens`),
+	getOneWithChildren: async (id: string) =>
+		await api.get(`${BASE_URL}/${id}/with-children`),
 
 	getPermissions: async (id: string): Promise<FileNodePermission[]> => {
 		const res = await api.get<ResponseSuccess<FileNodePermission[]>>(
@@ -60,8 +60,8 @@ export const fileNodeManagerApi = {
 	getOneFullTree: async (id: string) =>
 		await api.get(`${BASE_URL}/${id}/full-tree`),
 
-	getChildrens: async (id: string, params: GetlistFileNodeDto) => {
-		const res = await api.get(`${BASE_URL}/${id}/childrens`, { params });
+	getChildren: async (id: string, params: GetListFileNodeDto) => {
+		const res = await api.get(`${BASE_URL}/${id}/children`, { params });
 		return res.data;
 	},
 

@@ -3,6 +3,7 @@ export interface IConfigTableColumn {
 	field: string;
 	orderField?: string;
 	width?: number;
+	render?: (value: any, record: any) => React.ReactNode;
 }
 
 export interface PaginationInfo {

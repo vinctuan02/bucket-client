@@ -11,7 +11,7 @@ export interface FileNode extends BaseUserUUIDEntity {
 	fileBucket?: any | null;
 	owner?: any | null;
 	fileNodeParent?: FileNode | null;
-	fileNodeChildrens?: FileNode[];
+	fileNodeChildren?: FileNode[];
 }
 
 export interface FileNodePermission extends BaseUserUUIDEntity {
@@ -29,5 +29,5 @@ export interface FileNodePermission extends BaseUserUUIDEntity {
 
 	fileNode?: FileNode | null;
 	user?: User | null;
-	sharedBy?: any | null;
+	sharedBy?: User | null;
 }

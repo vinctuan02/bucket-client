@@ -8,11 +8,11 @@ import { PermissionFieldMapping } from '@/modules/permissions/permisson.enum';
 import { roleDefault } from '@/modules/roles/role.constant';
 import { RolePermission } from '@/modules/roles/role.dto';
 import { Role } from '@/modules/roles/role.entity';
+import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import Page from '../pages/c.page';
 import TableSelect from '../table-selector/c.table-selector';
 import './modal.scss';
-import { message } from 'antd';
 
 interface RoleModalProps {
 	initialData: Partial<Role>;
@@ -139,40 +139,42 @@ export default function RoleModal({
 					{initialData?.id ? 'Edit Role' : 'Create Role'}
 				</h2>
 
-				<div className="form-row">
-					<div className="form-group">
-						<label>Role Name</label>
-						<input
-							name="name"
-							type="text"
-							value={form.name ?? ''}
-							onChange={handleChange}
-							placeholder="Enter role name"
-						/>
+				<div className="modal__content">
+					<div className="form-row">
+						<div className="form-group">
+							<label>Role Name</label>
+							<input
+								name="name"
+								type="text"
+								value={form.name ?? ''}
+								onChange={handleChange}
+								placeholder="Enter role name"
+							/>
+						</div>
+						<div className="form-group">
+							<label>Description</label>
+							<input
+								name="description"
+								type="text"
+								value={form?.description ?? ''}
+								onChange={handleChange}
+								placeholder="Enter description"
+							/>
+						</div>
 					</div>
-					<div className="form-group">
-						<label>Description</label>
-						<input
-							name="description"
-							type="text"
-							value={form?.description ?? ''}
-							onChange={handleChange}
-							placeholder="Enter description"
-						/>
-					</div>
-				</div>
 
-				<Page title="Permissions" isShowTitle={true}>
-					<TableSelect
-						data={permissions}
-						columns={permissionConfigsColumnTable}
-						selectedKeys={selectedPermissionIds}
-						onSelectChange={setSelectedPermissionIds}
-						onSearch={handleSearch}
-						pagination={pagination}
-						onPageChange={handlePageChange}
-					/>
-				</Page>
+					<Page title="Permissions" isShowTitle={true}>
+						<TableSelect
+							data={permissions}
+							columns={permissionConfigsColumnTable}
+							selectedKeys={selectedPermissionIds}
+							onSelectChange={setSelectedPermissionIds}
+							onSearch={handleSearch}
+							pagination={pagination}
+							onPageChange={handlePageChange}
+						/>
+					</Page>
+				</div>
 
 				<div className="modal__actions">
 					<button className="btn btn-cancel" onClick={onClose}>

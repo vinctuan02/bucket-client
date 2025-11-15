@@ -21,12 +21,12 @@ export interface CreateFileDto {
 	fileMetadata: FileMetadata;
 }
 
-export class GetlistFileNodeDto extends BaseQueryDto {
+export class GetListFileNodeDto extends BaseQueryDto {
 	fileNodeParentId?: string;
 
 	fieldOrder: FileNodeFM = FileNodeFM.name;
 
-	constructor(init?: Partial<GetlistFileNodeDto>) {
+	constructor(init?: Partial<GetListFileNodeDto>) {
 		super();
 		Object.assign(this, init);
 	}

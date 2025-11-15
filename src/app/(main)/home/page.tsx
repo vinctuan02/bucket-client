@@ -6,18 +6,18 @@ import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
 import { fileNodeManagerApi } from '@/modules/home/home.api';
 import { fileNodeConifgsColumnTable } from '@/modules/home/home.const';
-import { GetlistFileNodeDto } from '@/modules/home/home.dto';
+import { GetListFileNodeDto } from '@/modules/home/home.dto';
 import { FileNode } from '@/modules/home/home.entity';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import FileNodeModal from '@/modules/home/components/home.c.modal';
-import { FileNodeFM } from '@/modules/home/home.enum';
 import { authApi } from '@/modules/auth/auth.api';
-import CreateMenu from '@/modules/home/components/home.c.create-menu';
-import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
 import FilePreview from '@/modules/commons/components/common.c.read-file';
 import FileNodeShareModal from '@/modules/home/components/file-node-permission.c.modal';
+import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
+import CreateMenu from '@/modules/home/components/home.c.create-menu';
+import FileNodeModal from '@/modules/home/components/home.c.modal';
+import { FileNodeFM } from '@/modules/home/home.enum';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -31,11 +31,14 @@ export default function HomePage() {
 	const [showMenu, setShowMenu] = useState(false);
 	const [breadcrumbs, setBreadcrumbs] = useState<FileNode[]>([]);
 	const [previewId, setPreviewId] = useState<string | null>(null);
-	const [shareModal, setShareModal] = useState<{ visible: boolean; fileNodeId?: string }>({ visible: false });
+	const [loading, setLoading] = useState(false);
+	const [shareModal, setShareModal] = useState<{
+		visible: boolean;
+		fileNodeId?: string;
+	}>({ visible: false });
 
-
-	const [folderQuery, setFolderQuery] = useState<GetlistFileNodeDto>(
-		new GetlistFileNodeDto(),
+	const [folderQuery, setFolderQuery] = useState<GetListFileNodeDto>(
+		new GetListFileNodeDto(),
 	);
 
 	useEffect(() => {
@@ -45,16 +48,20 @@ export default function HomePage() {
 			if (!params.fileNodeParentId) {
 				const { data: user } = await authApi.me();
 				if (user?.id) {
-					router.replace(`?fileNodeParentId=${user.id}`, { scroll: false });
+					router.replace(`?fileNodeParentId=${user.id}`, {
+						scroll: false,
+					});
 					return;
 				}
 			}
 
-			setFolderQuery(new GetlistFileNodeDto({
-				...params,
-				page: Number(params.page) || 1,
-				pageSize: Number(params.pageSize) || 10,
-			}));
+			setFolderQuery(
+				new GetListFileNodeDto({
+					...params,
+					page: Number(params.page) || 1,
+					pageSize: Number(params.pageSize) || 10,
+				}),
+			);
 		})();
 	}, [searchParams]);
 
@@ -65,7 +72,6 @@ export default function HomePage() {
 			if (folderQuery.fileNodeParentId) {
 				fetchBreadcrumbs(folderQuery.fileNodeParentId);
 			}
-
 		}, 250);
 
 		return () => clearTimeout(delayDebounce);
@@ -78,7 +84,7 @@ export default function HomePage() {
 		folderQuery.fileNodeParentId,
 	]);
 
-	const syncQueryToUrl = (params: GetlistFileNodeDto) => {
+	const syncQueryToUrl = (params: GetListFileNodeDto) => {
 		const query = new URLSearchParams();
 
 		if (params.keywords) query.set('keywords', params.keywords);
@@ -86,18 +92,20 @@ export default function HomePage() {
 		if (params.pageSize) query.set('pageSize', String(params.pageSize));
 		if (params.fieldOrder) query.set('fieldOrder', params.fieldOrder);
 		if (params.orderBy) query.set('orderBy', params.orderBy);
-		if (params.fileNodeParentId) query.set('fileNodeParentId', params.fileNodeParentId);
+		if (params.fileNodeParentId)
+			query.set('fileNodeParentId', params.fileNodeParentId);
 
 		router.push(`?${query.toString()}`, { scroll: false });
 	};
 
-	const fetchFileNodes = async (params?: GetlistFileNodeDto) => {
+	const fetchFileNodes = async (params?: GetListFileNodeDto) => {
 		if (!params?.fileNodeParentId) return;
 
+		setLoading(true);
 		try {
-			const { data } = await fileNodeManagerApi.getChildrens(
+			const { data } = await fileNodeManagerApi.getChildren(
 				params.fileNodeParentId,
-				params
+				params,
 			);
 
 			setFileNodes(data?.items ?? []);
@@ -110,7 +118,8 @@ export default function HomePage() {
 				});
 			}
 		} catch (err) {
-
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -119,12 +128,10 @@ export default function HomePage() {
 			const { data } = await fileNodeManagerApi.getBreadcrumbs(folderId);
 
 			setBreadcrumbs(data ?? []);
-
 		} catch (err) {
-			console.error("Fetch Breadcrumb Error:", err);
+			console.error('Fetch Breadcrumb Error:', err);
 		}
 	};
-
 
 	const handleEdit = (FileNode: FileNode) => {
 		setEditingFolder(FileNode);
@@ -144,18 +151,19 @@ export default function HomePage() {
 
 	const handleSearch = (value: string) => {
 		setFolderQuery(
-			(prev) => new GetlistFileNodeDto({ ...prev, keywords: value, page: 1 }),
+			(prev) =>
+				new GetListFileNodeDto({ ...prev, keywords: value, page: 1 }),
 		);
 	};
 
 	const handlePageChange = (page: number) => {
-		setFolderQuery((prev) => new GetlistFileNodeDto({ ...prev, page }));
+		setFolderQuery((prev) => new GetListFileNodeDto({ ...prev, page }));
 	};
 
 	const handleSortChange = (field: string, direction: OrderDirection) => {
 		setFolderQuery(
 			(prev) =>
-				new GetlistFileNodeDto({
+				new GetListFileNodeDto({
 					...prev,
 					fieldOrder: field as FileNodeFM,
 					orderBy: direction,
@@ -172,7 +180,6 @@ export default function HomePage() {
 					fileNodeParentId: data.fileNodeParentId,
 				});
 			} else if (modalType === 'file') {
-
 				const file = data.file as File;
 				const extension = file.name.split('.').pop() ?? '';
 				const fileMetadata = {
@@ -182,7 +189,6 @@ export default function HomePage() {
 					extension,
 				};
 
-
 				const res = await fileNodeManagerApi.createFile({
 					name: data.name,
 					fileNodeParentId: data.fileNodeParentId,
@@ -190,7 +196,8 @@ export default function HomePage() {
 				});
 
 				const uploadUrl = res.data?.data?.uploadUrl;
-				if (!uploadUrl) throw new Error('No upload URL received from server');
+				if (!uploadUrl)
+					throw new Error('No upload URL received from server');
 
 				await fetch(uploadUrl, {
 					method: 'PUT',
@@ -205,20 +212,18 @@ export default function HomePage() {
 			setShowModal(false);
 			setEditingFolder({});
 			setModalType(null);
-		} catch (error) {
-
-		}
+		} catch (error) {}
 	};
 
 	const handleRowClick = (row: FileNode) => {
-		if (row.type === "file") {
+		if (row.type === 'file') {
 			setPreviewId(row.id);
 			return;
 		}
 
 		if (row.type === 'folder') {
-			setFolderQuery(prev => {
-				const newQuery = new GetlistFileNodeDto({
+			setFolderQuery((prev) => {
+				const newQuery = new GetListFileNodeDto({
 					...prev,
 					fileNodeParentId: row.id,
 					page: 1,
@@ -228,13 +233,11 @@ export default function HomePage() {
 				return newQuery;
 			});
 		}
-
-
 	};
 
 	const handleBreadcrumbClick = (folder: FileNode) => {
-		setFolderQuery(prev => {
-			const newQuery = new GetlistFileNodeDto({
+		setFolderQuery((prev) => {
+			const newQuery = new GetListFileNodeDto({
 				...prev,
 				fileNodeParentId: folder.id,
 				page: 1,
@@ -248,7 +251,6 @@ export default function HomePage() {
 	return (
 		<Page title="FileNodes" isShowTitle={false}>
 			<div className="relative">
-
 				<Breadcrumbs
 					data={breadcrumbs}
 					onClick={handleBreadcrumbClick}
@@ -265,7 +267,10 @@ export default function HomePage() {
 					onPageChange={handlePageChange}
 					onSortChange={handleSortChange}
 					onRowClick={handleRowClick}
-					onShare={(row) => setShareModal({ visible: true, fileNodeId: row.id })}
+					onShare={(row) =>
+						setShareModal({ visible: true, fileNodeId: row.id })
+					}
+					loading={loading}
 				/>
 
 				{showMenu && (
@@ -273,12 +278,18 @@ export default function HomePage() {
 						<CreateMenu
 							onClose={() => setShowMenu(false)}
 							onCreateFolder={() => {
-								setEditingFolder({ fileNodeParentId: folderQuery.fileNodeParentId });
+								setEditingFolder({
+									fileNodeParentId:
+										folderQuery.fileNodeParentId,
+								});
 								setModalType('folder');
 								setShowModal(true);
 							}}
 							onCreateFile={() => {
-								setEditingFolder({ fileNodeParentId: folderQuery.fileNodeParentId });
+								setEditingFolder({
+									fileNodeParentId:
+										folderQuery.fileNodeParentId,
+								});
 								setModalType('file');
 								setShowModal(true);
 							}}
@@ -315,8 +326,6 @@ export default function HomePage() {
 						}}
 					/>
 				)}
-
-
 			</div>
 		</Page>
 	);

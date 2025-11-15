@@ -1,16 +1,16 @@
 'use client';
 
-import UserModal from '@/modules/users/components/user.c.create-update.modal';
 import Page from '@/components/pages/c.page';
 import Table from '@/components/tables/c.table';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
+import UserModal from '@/modules/users/components/user.c.create-update.modal';
 import { userApi } from '@/modules/users/user.api';
-import { usersConifgsColumnTable } from '@/modules/users/user.constant';
+import { usersConfigsColumnTable } from '@/modules/users/user.constant';
 import { GetListUserDto } from '@/modules/users/user.dto';
 import { User, UserRole } from '@/modules/users/user.entity';
-import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function UsersPage() {
 	const router = useRouter();
@@ -20,6 +20,7 @@ export default function UsersPage() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingUser, setEditingUser] = useState<Partial<User>>({});
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
+	const [loading, setLoading] = useState(false);
 
 	const [userQuery, setUserQuery] = useState<GetListUserDto>(
 		new GetListUserDto(),
@@ -46,6 +47,7 @@ export default function UsersPage() {
 	};
 
 	const fetchUsers = useCallback(async (params?: GetListUserDto) => {
+		setLoading(true);
 		try {
 			const { data } = await userApi.getList(params);
 			setUsers(data?.items ?? []);
@@ -59,6 +61,8 @@ export default function UsersPage() {
 			}
 		} catch (err) {
 			console.error('Error fetching users:', err);
+		} finally {
+			setLoading(false);
 		}
 	}, []);
 
@@ -90,7 +94,8 @@ export default function UsersPage() {
 			if (user.password) dto.password = user.password;
 			if (user.id) await userApi.update(user.id, dto);
 			else {
-				if (!user.password) throw new Error('Password is required for new user');
+				if (!user.password)
+					throw new Error('Password is required for new user');
 				await userApi.create(dto);
 			}
 			fetchUsers(userQuery);
@@ -117,7 +122,9 @@ export default function UsersPage() {
 	};
 
 	const handleSearch = (value: string) => {
-		setUserQuery((prev) => new GetListUserDto({ ...prev, keywords: value, page: 1 }));
+		setUserQuery(
+			(prev) => new GetListUserDto({ ...prev, keywords: value, page: 1 }),
+		);
 	};
 
 	const handlePageChange = (page: number) => {
@@ -140,7 +147,7 @@ export default function UsersPage() {
 		<Page title="Users" isShowTitle={false}>
 			<Table
 				data={users}
-				columns={usersConifgsColumnTable}
+				columns={usersConfigsColumnTable}
 				onCreate={() => {
 					setEditingUser({});
 					setShowModal(true);
@@ -151,6 +158,7 @@ export default function UsersPage() {
 				pagination={pagination}
 				onPageChange={handlePageChange}
 				onSortChange={handleSortChange}
+				loading={loading}
 			/>
 
 			{showModal && (
