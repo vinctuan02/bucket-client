@@ -59,17 +59,24 @@
 		}
 
 		input,
-		select {
+		select,
+		textarea {
 			padding: 10px 12px;
 			border: 1px solid #d1d5db;
 			border-radius: 8px;
 			font-size: 14px;
 			outline: none;
 			transition: border-color 0.2s ease;
+			font-family: inherit;
+			resize: vertical;
 
 			&:focus {
 				border-color: #2563eb;
 			}
+		}
+
+		textarea {
+			min-height: 80px;
 		}
 	}
 }

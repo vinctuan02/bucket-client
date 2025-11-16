@@ -18,6 +18,7 @@ interface TableProps<T> {
 	onEdit?: (row: T) => void;
 	onDelete?: (id: string) => void;
 	onShare?: (row: T) => void;
+	onCreate?: () => void;
 	onCreateFolder?: () => void;
 	onCreateFile?: () => void;
 	onSearch?: (value: string) => void;
@@ -34,6 +35,7 @@ export default function Table<T extends { id?: number | string }>({
 	onShare,
 	onEdit,
 	onDelete,
+	onCreate,
 	onCreateFolder,
 	onCreateFile,
 	onSearch,
@@ -44,7 +46,6 @@ export default function Table<T extends { id?: number | string }>({
 	loading,
 }: TableProps<T>) {
 	const [search, setSearch] = useState('');
-	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [showCreateMenu, setShowCreateMenu] = useState(false);
 
 	// search
@@ -174,8 +175,6 @@ export default function Table<T extends { id?: number | string }>({
 		_filters,
 		sorter,
 	) => {
-		setIsTransitioning(true);
-
 		// Handle pagination
 		if (paginationConfig.current && onPageChange) {
 			onPageChange(paginationConfig.current);
@@ -190,6 +189,7 @@ export default function Table<T extends { id?: number | string }>({
 						: OrderDirection.DESC;
 				// Use orderField from column config, not the dataIndex field
 				const orderField = (sorter.column as any)?.orderField;
+				console.log('Sort triggered:', { sorter, orderField, direction });
 				if (orderField) {
 					onSortChange(orderField, direction);
 				}
@@ -197,13 +197,7 @@ export default function Table<T extends { id?: number | string }>({
 		}
 	};
 
-	// Reset transition when data changes
-	React.useEffect(() => {
-		if (isTransitioning) {
-			const timer = setTimeout(() => setIsTransitioning(false), 100);
-			return () => clearTimeout(timer);
-		}
-	}, [data, isTransitioning]);
+
 
 	return (
 		<div className="table-wrapper">
@@ -216,6 +210,11 @@ export default function Table<T extends { id?: number | string }>({
 					onChange={handleSearchChange}
 					style={{ width: 280 }}
 				/>
+				{onCreate && (
+					<Button type="primary" onClick={onCreate}>
+						CREATE
+					</Button>
+				)}
 				{(onCreateFolder || onCreateFile) && (
 					<div style={{ position: 'relative', zIndex: 100 }}>
 						<Button type="primary" onClick={() => setShowCreateMenu(!showCreateMenu)}>
@@ -242,20 +241,11 @@ export default function Table<T extends { id?: number | string }>({
 
 			{/* Ant Design Table */}
 			<div style={{ position: 'relative' }}>
-				{(loading || isTransitioning) && (
-					<div className="table-loading-overlay">
-						<Skeleton active paragraph={{ rows: 8 }} />
-					</div>
-				)}
 				<AntTable<T>
 					columns={antColumns}
 					dataSource={data}
 					rowKey={(record) => record.id as string | number}
-					loading={false}
-					style={{
-						opacity: loading || isTransitioning ? 0.3 : 1,
-						transition: 'opacity 0.2s',
-					}}
+					loading={loading}
 					pagination={
 						pagination
 							? {
