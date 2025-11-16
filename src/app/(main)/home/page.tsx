@@ -48,6 +48,11 @@ export default function HomePage() {
 	useEffect(() => {
 		const params = Object.fromEntries(searchParams.entries());
 
+		// Set viewMode from URL
+		if (params.viewMode === 'table' || params.viewMode === 'grid') {
+			setViewMode(params.viewMode);
+		}
+
 		(async () => {
 			if (!params.fileNodeParentId) {
 				const { data: user } = await authApi.me();
@@ -59,11 +64,14 @@ export default function HomePage() {
 				}
 			}
 
+			// Filter out viewMode before creating query (don't send to API)
+			const { viewMode: _, ...apiParams } = params;
+
 			setFolderQuery(
 				new GetListFileNodeDto({
-					...params,
-					page: Number(params.page) || 1,
-					pageSize: Number(params.pageSize) || 10,
+					...apiParams,
+					page: Number(apiParams.page) || 1,
+					pageSize: Number(apiParams.pageSize) || 10,
 				}),
 			);
 		})();
@@ -88,7 +96,7 @@ export default function HomePage() {
 		folderQuery.fileNodeParentId,
 	]);
 
-	const syncQueryToUrl = (params: GetListFileNodeDto) => {
+	const syncQueryToUrl = (params: GetListFileNodeDto, mode?: 'table' | 'grid') => {
 		const query = new URLSearchParams();
 
 		if (params.keywords) query.set('keywords', params.keywords);
@@ -98,6 +106,8 @@ export default function HomePage() {
 		if (params.orderBy) query.set('orderBy', params.orderBy);
 		if (params.fileNodeParentId)
 			query.set('fileNodeParentId', params.fileNodeParentId);
+		// Add viewMode to URL (but don't use it in API call)
+		query.set('viewMode', mode || viewMode);
 
 		router.push(`?${query.toString()}`, { scroll: false });
 	};
@@ -264,12 +274,18 @@ export default function HomePage() {
 						<Button
 							type={viewMode === 'table' ? 'primary' : 'default'}
 							icon={<List size={16} />}
-							onClick={() => setViewMode('table')}
+							onClick={() => {
+								setViewMode('table');
+								syncQueryToUrl(folderQuery, 'table');
+							}}
 						/>
 						<Button
 							type={viewMode === 'grid' ? 'primary' : 'default'}
 							icon={<LayoutGrid size={16} />}
-							onClick={() => setViewMode('grid')}
+							onClick={() => {
+								setViewMode('grid');
+								syncQueryToUrl(folderQuery, 'grid');
+							}}
 						/>
 					</div>
 				</div>
