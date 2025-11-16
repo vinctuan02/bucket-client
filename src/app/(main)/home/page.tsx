@@ -2,6 +2,8 @@
 
 import Page from '@/components/pages/c.page';
 import Table from '@/components/tables/c.table';
+import Grid from '@/components/tables/c.grid';
+import GridThumbnail from '@/components/tables/c.grid-thumbnail';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
 import { fileNodeManagerApi } from '@/modules/home/home.api';
@@ -18,6 +20,8 @@ import FileNodeModal from '@/modules/home/components/home.c.modal';
 import { FileNodeFM } from '@/modules/home/home.enum';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Button } from 'antd';
+import { List, LayoutGrid, Folder, FileText } from 'lucide-react';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -28,7 +32,6 @@ export default function HomePage() {
 	const [modalType, setModalType] = useState<'folder' | 'file' | null>(null);
 	const [editingFolder, setEditingFolder] = useState<Partial<FileNode>>({});
 	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
-	const [showMenu, setShowMenu] = useState(false);
 	const [breadcrumbs, setBreadcrumbs] = useState<FileNode[]>([]);
 	const [previewId, setPreviewId] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -40,6 +43,7 @@ export default function HomePage() {
 	const [folderQuery, setFolderQuery] = useState<GetListFileNodeDto>(
 		new GetListFileNodeDto(),
 	);
+	const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
 
 	useEffect(() => {
 		const params = Object.fromEntries(searchParams.entries());
@@ -212,7 +216,7 @@ export default function HomePage() {
 			setShowModal(false);
 			setEditingFolder({});
 			setModalType(null);
-		} catch (error) {}
+		} catch (error) { }
 	};
 
 	const handleRowClick = (row: FileNode) => {
@@ -251,50 +255,116 @@ export default function HomePage() {
 	return (
 		<Page title="FileNodes" isShowTitle={false}>
 			<div className="relative">
-				<Breadcrumbs
-					data={breadcrumbs}
-					onClick={handleBreadcrumbClick}
-				/>
-
-				<Table
-					data={FileNodes}
-					columns={fileNodeConifgsColumnTable}
-					onCreate={() => setShowMenu((prev) => !prev)}
-					onDelete={handleDelete}
-					onEdit={handleEdit}
-					onSearch={handleSearch}
-					pagination={pagination}
-					onPageChange={handlePageChange}
-					onSortChange={handleSortChange}
-					onRowClick={handleRowClick}
-					onShare={(row) =>
-						setShareModal({ visible: true, fileNodeId: row.id })
-					}
-					loading={loading}
-				/>
-
-				{showMenu && (
-					<div className="absolute top-[70px] right-[0px] z-50">
-						<CreateMenu
-							onClose={() => setShowMenu(false)}
-							onCreateFolder={() => {
-								setEditingFolder({
-									fileNodeParentId:
-										folderQuery.fileNodeParentId,
-								});
-								setModalType('folder');
-								setShowModal(true);
-							}}
-							onCreateFile={() => {
-								setEditingFolder({
-									fileNodeParentId:
-										folderQuery.fileNodeParentId,
-								});
-								setModalType('file');
-								setShowModal(true);
-							}}
+				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+					<Breadcrumbs
+						data={breadcrumbs}
+						onClick={handleBreadcrumbClick}
+					/>
+					<div style={{ display: 'flex', gap: '8px' }}>
+						<Button
+							type={viewMode === 'table' ? 'primary' : 'default'}
+							icon={<List size={16} />}
+							onClick={() => setViewMode('table')}
+						/>
+						<Button
+							type={viewMode === 'grid' ? 'primary' : 'default'}
+							icon={<LayoutGrid size={16} />}
+							onClick={() => setViewMode('grid')}
 						/>
 					</div>
+				</div>
+
+				{viewMode === 'table' ? (
+					<Table
+						data={FileNodes}
+						columns={fileNodeConifgsColumnTable}
+						onCreateFolder={() => {
+							setEditingFolder({
+								fileNodeParentId: folderQuery.fileNodeParentId,
+							});
+							setModalType('folder');
+							setShowModal(true);
+						}}
+						onCreateFile={() => {
+							setEditingFolder({
+								fileNodeParentId: folderQuery.fileNodeParentId,
+							});
+							setModalType('file');
+							setShowModal(true);
+						}}
+						onDelete={handleDelete}
+						onEdit={handleEdit}
+						onSearch={handleSearch}
+						pagination={pagination}
+						onPageChange={handlePageChange}
+						onSortChange={handleSortChange}
+						onRowClick={handleRowClick}
+						onShare={(row) =>
+							setShareModal({ visible: true, fileNodeId: row.id })
+						}
+						loading={loading}
+					/>
+				) : (
+					<Grid
+						data={FileNodes}
+						onDelete={handleDelete}
+						onEdit={handleEdit}
+						onRowClick={handleRowClick}
+						onShare={(row) =>
+							setShareModal({ visible: true, fileNodeId: row.id })
+						}
+						loading={loading}
+						pagination={pagination}
+						onPageChange={handlePageChange}
+						onCreateFolder={() => {
+							setEditingFolder({
+								fileNodeParentId: folderQuery.fileNodeParentId,
+							});
+							setModalType('folder');
+							setShowModal(true);
+						}}
+						onCreateFile={() => {
+							setEditingFolder({
+								fileNodeParentId: folderQuery.fileNodeParentId,
+							});
+							setModalType('file');
+							setShowModal(true);
+						}}
+						onSearch={handleSearch}
+						renderCard={(item: FileNode) => (
+							<div
+								style={{ cursor: item.type === 'file' ? 'pointer' : 'default' }}
+								onClick={() => item.type === 'file' && setPreviewId(item.id)}
+							>
+								{item.type === 'file' ? (
+									<GridThumbnail fileNodeId={item.id} fileName={item.name} />
+								) : (
+									<div style={{
+										height: '120px',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										background: '#f5f5f5',
+										borderRadius: '4px',
+										marginBottom: '8px',
+										fontSize: '48px'
+									}}>
+										<Folder size={48} color="#1890ff" />
+									</div>
+								)}
+								<div style={{
+									fontWeight: 500,
+									overflow: 'hidden',
+									textOverflow: 'ellipsis',
+									whiteSpace: 'nowrap',
+									width: '100%',
+									textAlign: 'center'
+								}}>
+									{item.name}
+								</div>
+							</div>
+						)}
+					/>
 				)}
 
 				{showModal && modalType && (

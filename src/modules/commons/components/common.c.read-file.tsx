@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fileNodeManagerApi } from "@/modules/home/home.api";
+import { ExternalLink } from "lucide-react";
 import "./common.c.read-file.scss";
 
 interface FilePreviewProps {
@@ -13,24 +14,25 @@ interface FilePreviewProps {
 export default function FilePreview({ fileNodeId, file, onClose }: FilePreviewProps) {
     const [url, setUrl] = useState<string | null>(null);
     const [contentType, setContentType] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string>("");
 
     useEffect(() => {
         if (file) {
-            // Nếu có file local => tạo URL tạm để preview
             const objectUrl = URL.createObjectURL(file);
             setUrl(objectUrl);
             setContentType(file.type);
+            setFileName(file.name);
 
             return () => URL.revokeObjectURL(objectUrl);
         }
 
         if (fileNodeId) {
-            // Nếu có fileNodeId => lấy từ API
             (async () => {
                 try {
                     const res = await fileNodeManagerApi.readFile(fileNodeId);
                     setUrl(res.data?.fileBucket.readUrl ?? "");
                     setContentType(res.data?.fileBucket.contentType ?? "");
+                    setFileName(res.data?.fileBucket.fileName ?? "");
                 } catch (err) {
                     console.error("Error load preview", err);
                 }
@@ -41,41 +43,73 @@ export default function FilePreview({ fileNodeId, file, onClose }: FilePreviewPr
     if (!url) return <div className="file-preview loading">Loading...</div>;
 
     const type = contentType?.split("/")[0];
+    const isImage = type === "image";
+    const isVideo = type === "video";
+    const isAudio = type === "audio";
+    const isPdf = contentType === "application/pdf";
+    const isText = contentType?.startsWith("text");
+
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onClose?.();
+        }
+    };
 
     return (
-        <div className="file-preview">
-            <div className="preview-container">
-                {type === "image" && <img src={url} alt="preview" />}
+        <div className="file-preview" onClick={handleOverlayClick}>
+            <div className="preview-modal">
+                <div className="preview-header">
+                    <h3 className="preview-title">{fileName}</h3>
+                    <div className="preview-actions">
+                        <button
+                            className="action-btn open-btn"
+                            onClick={() => window.open(url, "_blank")}
+                        >
+                            <ExternalLink size={14} />
+                        </button>
 
-                {type === "video" && (
-                    <video controls autoPlay>
-                        <source src={url} type={contentType ?? "video/mp4"} />
-                    </video>
-                )}
+                        {onClose && (
+                            <button className="action-btn action-close" onClick={onClose}>
+                                ✕
+                            </button>
+                        )}
+                    </div>
 
-                {contentType === "application/pdf" && (
-                    <iframe src={url} title="PDF Preview" />
-                )}
+                </div>
 
-                {contentType?.startsWith("text") && (
-                    <iframe src={url} title="Text Preview" />
-                )}
+                <div className="preview-container">
+                    {isImage && <img src={url} alt="preview" />}
 
-                {!["image", "video"].includes(type ?? "") &&
-                    contentType !== "application/pdf" &&
-                    !contentType?.startsWith("text") && (
-                        <div className="unknown">
-                            <p>Can’t preview this file.</p>
-                            <a href={url} download>Download</a>
+                    {isVideo && (
+                        <video controls autoPlay>
+                            <source src={url} type={contentType ?? "video/mp4"} />
+                        </video>
+                    )}
+
+                    {isAudio && (
+                        <audio controls autoPlay>
+                            <source src={url} type={contentType ?? "audio/mpeg"} />
+                        </audio>
+                    )}
+
+                    {isPdf && (
+                        <iframe src={url} title="PDF Preview" />
+                    )}
+
+                    {isText && (
+                        <iframe src={url} title="Text Preview" />
+                    )}
+
+                    {!isImage && !isVideo && !isAudio && !isPdf && !isText && (
+                        <div className="download-section">
+                            <p>Preview not available for this file type</p>
+                            <a href={url} download={fileName} className="download-btn">
+                                Download {fileName}
+                            </a>
                         </div>
                     )}
+                </div>
             </div>
-
-            {onClose && (
-                <button className="close-btn" onClick={onClose}>
-                    ✕
-                </button>
-            )}
         </div>
     );
 }

@@ -9,6 +9,7 @@ import type { TableProps as AntTableProps } from 'antd';
 import { Table as AntTable, Button, Input, Skeleton, Tooltip } from 'antd';
 import { Edit, Trash, UserPlus } from 'lucide-react';
 import React, { useState } from 'react';
+import CreateMenu from '@/modules/home/components/home.c.create-menu';
 import './c.table.scss';
 
 interface TableProps<T> {
@@ -17,7 +18,8 @@ interface TableProps<T> {
 	onEdit?: (row: T) => void;
 	onDelete?: (id: string) => void;
 	onShare?: (row: T) => void;
-	onCreate?: () => void;
+	onCreateFolder?: () => void;
+	onCreateFile?: () => void;
 	onSearch?: (value: string) => void;
 	pagination?: PaginationInfo;
 	onPageChange?: (page: number) => void;
@@ -32,7 +34,8 @@ export default function Table<T extends { id?: number | string }>({
 	onShare,
 	onEdit,
 	onDelete,
-	onCreate,
+	onCreateFolder,
+	onCreateFile,
 	onSearch,
 	pagination,
 	onPageChange,
@@ -42,6 +45,7 @@ export default function Table<T extends { id?: number | string }>({
 }: TableProps<T>) {
 	const [search, setSearch] = useState('');
 	const [isTransitioning, setIsTransitioning] = useState(false);
+	const [showCreateMenu, setShowCreateMenu] = useState(false);
 
 	// search
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,51 +120,51 @@ export default function Table<T extends { id?: number | string }>({
 		// Actions column
 		...(onEdit || onDelete || onShare
 			? [
-					{
-						title: '',
-						key: 'actions',
-						width: 120,
-						render: (_: any, record: T) => (
-							<div
-								className="table__actions"
-								onClick={(e) => e.stopPropagation()}
-							>
-								{onEdit && (
-									<Tooltip title="Edit">
-										<button
-											className="icon-btn edit"
-											onClick={() => onEdit(record)}
-										>
-											<Edit size={16} />
-										</button>
-									</Tooltip>
-								)}
-								{onDelete && (
-									<Tooltip title="Delete">
-										<button
-											className="icon-btn delete"
-											onClick={() =>
-												onDelete(record.id as string)
-											}
-										>
-											<Trash size={16} />
-										</button>
-									</Tooltip>
-								)}
-								{onShare && (
-									<Tooltip title="Share">
-										<button
-											className="icon-btn share"
-											onClick={() => onShare(record)}
-										>
-											<UserPlus size={16} />
-										</button>
-									</Tooltip>
-								)}
-							</div>
-						),
-					},
-				]
+				{
+					title: '',
+					key: 'actions',
+					width: 120,
+					render: (_: any, record: T) => (
+						<div
+							className="table__actions"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{onEdit && (
+								<Tooltip title="Edit">
+									<button
+										className="icon-btn edit"
+										onClick={() => onEdit(record)}
+									>
+										<Edit size={16} />
+									</button>
+								</Tooltip>
+							)}
+							{onDelete && (
+								<Tooltip title="Delete">
+									<button
+										className="icon-btn delete"
+										onClick={() =>
+											onDelete(record.id as string)
+										}
+									>
+										<Trash size={16} />
+									</button>
+								</Tooltip>
+							)}
+							{onShare && (
+								<Tooltip title="Share">
+									<button
+										className="icon-btn share"
+										onClick={() => onShare(record)}
+									>
+										<UserPlus size={16} />
+									</button>
+								</Tooltip>
+							)}
+						</div>
+					),
+				},
+			]
 			: []),
 	];
 
@@ -212,10 +216,27 @@ export default function Table<T extends { id?: number | string }>({
 					onChange={handleSearchChange}
 					style={{ width: 280 }}
 				/>
-				{onCreate && (
-					<Button type="primary" onClick={onCreate}>
-						CREATE
-					</Button>
+				{(onCreateFolder || onCreateFile) && (
+					<div style={{ position: 'relative', zIndex: 100 }}>
+						<Button type="primary" onClick={() => setShowCreateMenu(!showCreateMenu)}>
+							CREATE
+						</Button>
+						{showCreateMenu && (
+							<div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', zIndex: 1000 }}>
+								<CreateMenu
+									onClose={() => setShowCreateMenu(false)}
+									onCreateFolder={() => {
+										onCreateFolder?.();
+										setShowCreateMenu(false);
+									}}
+									onCreateFile={() => {
+										onCreateFile?.();
+										setShowCreateMenu(false);
+									}}
+								/>
+							</div>
+						)}
+					</div>
 				)}
 			</div>
 
@@ -238,13 +259,13 @@ export default function Table<T extends { id?: number | string }>({
 					pagination={
 						pagination
 							? {
-									current: pagination.page,
-									pageSize: pagination.itemsPerPage,
-									total: pagination.totalItems,
-									showSizeChanger: false,
-									showTotal: (total, range) =>
-										`${range[0]}-${range[1]} / ${total}`,
-								}
+								current: pagination.page,
+								pageSize: pagination.itemsPerPage,
+								total: pagination.totalItems,
+								showSizeChanger: false,
+								showTotal: (total, range) =>
+									`${range[0]}-${range[1]} / ${total}`,
+							}
 							: false
 					}
 					onChange={handleTableChange}

@@ -80,6 +80,7 @@ export const fileNodeManagerApi = {
 					id: string;
 					contentType: string;
 					readUrl: string;
+					fileName: string;
 				};
 			}>
 		>(`${BASE_URL}/${id}/read`);

@@ -63,29 +63,61 @@ export default function FileNodeModal({ type, initialData, onClose, onSave }: Fi
                     </div>
 
                     {type === 'file' && (
-                        <div className="form-group full">
-                            <label>Upload File</label>
-                            {file ? (
-                                <div className="file-preview-u">
-                                    <span className="file-name">{file.name}</span>
-                                    <button
-                                        className="file-remove"
-                                        onClick={() => {
-                                            setFile(null);
-                                            setName('');
-                                        }}
-                                    >
-                                        <X size={16} />
-                                    </button>
+                        <>
+                            <div className="form-group full">
+                                <label>Upload File</label>
+                                {file ? (
+                                    <div className="file-preview-u">
+                                        <span className="file-name">{file.name}</span>
+                                        <button
+                                            className="file-remove"
+                                            onClick={() => {
+                                                setFile(null);
+                                                setName('');
+                                            }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="upload-box">
+                                        <Upload size={18} />
+                                        <span>Click to choose file</span>
+                                        <input type="file" onChange={handleFileChange} />
+                                    </label>
+                                )}
+                            </div>
+
+                            {file && (
+                                <div className="form-group full">
+                                    <label>Preview</label>
+                                    <div className="file-preview-container">
+                                        {file.type.startsWith('image/') && (
+                                            <img src={URL.createObjectURL(file)} alt="preview" className="preview-image" />
+                                        )}
+                                        {file.type.startsWith('video/') && (
+                                            <video controls className="preview-video">
+                                                <source src={URL.createObjectURL(file)} type={file.type} />
+                                            </video>
+                                        )}
+                                        {file.type === 'application/pdf' && (
+                                            <iframe src={URL.createObjectURL(file)} className="preview-pdf" />
+                                        )}
+                                        {file.type.startsWith('text/') && (
+                                            <iframe src={URL.createObjectURL(file)} className="preview-text" />
+                                        )}
+                                        {!file.type.startsWith('image/') &&
+                                            !file.type.startsWith('video/') &&
+                                            file.type !== 'application/pdf' &&
+                                            !file.type.startsWith('text/') && (
+                                                <div className="preview-unavailable">
+                                                    <p>Preview not available for this file type</p>
+                                                </div>
+                                            )}
+                                    </div>
                                 </div>
-                            ) : (
-                                <label className="upload-box">
-                                    <Upload size={18} />
-                                    <span>Click to choose file</span>
-                                    <input type="file" onChange={handleFileChange} />
-                                </label>
                             )}
-                        </div>
+                        </>
                     )}
                 </div>
 
