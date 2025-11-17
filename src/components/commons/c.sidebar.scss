@@ -1,5 +1,5 @@
 .sidebar {
- position: fixed;
+  position: fixed;
   top: 0;
   left: 0;
   height: 96vh;
@@ -9,6 +9,8 @@
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   &__logo {
     display: grid;
@@ -17,10 +19,13 @@
     font-size: 1.5rem;
     font-weight: 700;
     font-family: "Roboto", sans-serif;
+    flex-shrink: 0;
   }
 
   &__menu {
     position: relative;
+    flex: 1;
+    overflow-y: auto;
 
     &__item {
       display: flex;
@@ -59,7 +64,13 @@
   }
 
   a {
-    text-decoration: none; 
+    text-decoration: none;
+  }
+
+  > div:last-child {
+    padding: 1rem;
+    margin-top: auto;
+    flex-shrink: 0;
   }
 }
 

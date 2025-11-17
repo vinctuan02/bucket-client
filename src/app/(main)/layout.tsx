@@ -9,6 +9,7 @@ import './layout.scss';
 
 import { authApi } from '@/modules/auth/auth.api';
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
+import { useAuthRefresh } from '@/modules/commons/hooks/useAuthRefresh';
 import { useRouter } from 'next/navigation';
 
 export default function RootLayout({
@@ -20,6 +21,8 @@ export default function RootLayout({
 	const [lastScrollY, setLastScrollY] = useState(0);
 	const router = useRouter();
 	const setUser = useAuthStore((s) => s.setUser);
+
+	useAuthRefresh();
 
 	useEffect(() => {
 		const handleScroll = () => {

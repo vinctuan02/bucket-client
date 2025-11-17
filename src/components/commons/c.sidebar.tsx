@@ -1,5 +1,6 @@
 'use client';
 
+import StorageDisplay from './c.storage-display';
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
 import {
 	CircleUserRound,
@@ -9,6 +10,7 @@ import {
 	Shield,
 	Users,
 	CreditCard,
+	Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,6 +23,18 @@ const sidebarNavItems = [
 		icon: <Folder size={18} strokeWidth={2.5} />,
 		to: '/home',
 		section: 'home',
+	},
+	{
+		display: 'Storage',
+		icon: <CreditCard size={18} strokeWidth={2.5} />,
+		to: '/storage',
+		section: 'storage',
+	},
+	{
+		display: 'Trash',
+		icon: <Trash2 size={18} strokeWidth={2.5} />,
+		to: '/trash',
+		section: 'trash',
 	},
 	// {
 	// 	display: 'Share',
@@ -165,6 +179,7 @@ export default function Sidebar() {
 					);
 				})} */}
 			</div>
+			<StorageDisplay />
 		</div>
 	);
 }

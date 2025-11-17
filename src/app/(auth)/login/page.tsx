@@ -1,5 +1,6 @@
 'use client';
 
+import PasswordInput from '@/components/commons/c.password-input';
 import { authApi } from '@/modules/auth/auth.api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,7 +12,9 @@ export default function LoginPage() {
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
+	const [isChecking, setIsChecking] = useState(true);
 
+	// Handle Google OAuth callback
 	useEffect(() => {
 		const url = new URL(window.location.href);
 		const token = url.searchParams.get('accessToken');
@@ -19,15 +22,17 @@ export default function LoginPage() {
 		if (token) {
 			localStorage.setItem('access_token', token);
 			window.history.replaceState({}, '', '/');
+			router.replace('/');
 		}
-	}, []);
+	}, [router]);
 
+	// Check if already logged in
 	useEffect(() => {
 		const token = localStorage.getItem('access_token');
-
-		console.log(token);
 		if (token) {
 			router.replace('/');
+		} else {
+			setIsChecking(false);
 		}
 	}, [router]);
 
@@ -57,6 +62,10 @@ export default function LoginPage() {
 		authApi.googleLogin();
 	};
 
+	if (isChecking) {
+		return null;
+	}
+
 	return (
 		<div className="login-page">
 			<div className="card">
@@ -76,12 +85,11 @@ export default function LoginPage() {
 
 					<div className="form-group">
 						<label>Password</label>
-						<input
-							type="password"
+						<PasswordInput
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							required
-							placeholder="••••••••"
+							name="password"
 						/>
 					</div>
 
@@ -92,6 +100,12 @@ export default function LoginPage() {
 					</button>
 				</form>
 
+				<div style={{ marginTop: '1rem', textAlign: 'right', fontSize: '0.875rem' }}>
+					<a href="/forgot-password" style={{ color: '#2563eb', textDecoration: 'none' }}>
+						Forgot password?
+					</a>
+				</div>
+
 				<div className="divider">or</div>
 
 				<div className="social-login">
@@ -99,6 +113,13 @@ export default function LoginPage() {
 						<img src="/logo.google.png" alt="Google" />
 						Sign in with Google
 					</button>
+				</div>
+
+				<div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: '#6b7280' }}>
+					Don't have an account?{' '}
+					<a href="/register" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '500' }}>
+						Sign up
+					</a>
 				</div>
 			</div>
 		</div>

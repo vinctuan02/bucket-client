@@ -7,7 +7,7 @@ import {
 } from '@/modules/commons/interface/common.interface';
 import type { TableProps as AntTableProps } from 'antd';
 import { Table as AntTable, Button, Input, Skeleton, Tooltip } from 'antd';
-import { Edit, Trash, UserPlus } from 'lucide-react';
+import { Edit, Trash, UserPlus, RotateCcw } from 'lucide-react';
 import React, { useState } from 'react';
 import CreateMenu from '@/modules/home/components/home.c.create-menu';
 import './c.table.scss';
@@ -18,6 +18,7 @@ interface TableProps<T> {
 	onEdit?: (row: T) => void;
 	onDelete?: (id: string) => void;
 	onShare?: (row: T) => void;
+	onRestore?: (id: string) => void;
 	onCreate?: () => void;
 	onCreateFolder?: () => void;
 	onCreateFile?: () => void;
@@ -35,6 +36,7 @@ export default function Table<T extends { id?: number | string }>({
 	onShare,
 	onEdit,
 	onDelete,
+	onRestore,
 	onCreate,
 	onCreateFolder,
 	onCreateFile,
@@ -119,7 +121,7 @@ export default function Table<T extends { id?: number | string }>({
 			},
 		})),
 		// Actions column
-		...(onEdit || onDelete || onShare
+		...(onEdit || onDelete || onShare || onRestore
 			? [
 				{
 					title: '',
@@ -130,6 +132,18 @@ export default function Table<T extends { id?: number | string }>({
 							className="table__actions"
 							onClick={(e) => e.stopPropagation()}
 						>
+							{onRestore && (
+								<Tooltip title="Restore">
+									<button
+										className="icon-btn restore"
+										onClick={() =>
+											onRestore(record.id as string)
+										}
+									>
+										<RotateCcw size={16} />
+									</button>
+								</Tooltip>
+							)}
 							{onEdit && (
 								<Tooltip title="Edit">
 									<button

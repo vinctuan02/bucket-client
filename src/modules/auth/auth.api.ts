@@ -56,10 +56,9 @@ export const authApi = {
 	},
 
 	verifyResetCode: async (data: VerifyResetCodeDto) => {
-		const res = await api.post<ResponseSuccess<any>>(
-			`${BASE_URL}/verify-reset-code`,
-			data,
-		);
+		const res = await api.post<
+			ResponseSuccess<{ token: string; userId: string }>
+		>(`${BASE_URL}/verify-reset-code`, data);
 		return res.data;
 	},
 
