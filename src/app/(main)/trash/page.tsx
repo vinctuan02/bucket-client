@@ -121,7 +121,7 @@ export default function TrashPage() {
 				...params,
 				isDelete: true,
 			});
-			const { data } = await fileNodeManagerApi.getList(queryParams);
+			const { data } = await fileNodeManagerApi.getTrashedItems(queryParams);
 
 			if (append) {
 				setFileNodes((prev) => [...prev, ...(data?.items ?? [])]);

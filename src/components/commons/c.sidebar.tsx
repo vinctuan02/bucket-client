@@ -11,6 +11,7 @@ import {
 	Users,
 	CreditCard,
 	Trash2,
+	Share2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,24 +25,6 @@ const sidebarNavItems = [
 		to: '/home',
 		section: 'home',
 	},
-	{
-		display: 'Storage',
-		icon: <CreditCard size={18} strokeWidth={2.5} />,
-		to: '/storage',
-		section: 'storage',
-	},
-	{
-		display: 'Trash',
-		icon: <Trash2 size={18} strokeWidth={2.5} />,
-		to: '/trash',
-		section: 'trash',
-	},
-	// {
-	// 	display: 'Share',
-	// 	icon: <Folder size={18} strokeWidth={2.5} />,
-	// 	to: '/share',
-	// 	section: 'share',
-	// },
 	{
 		display: 'Users',
 		icon: <Users size={18} strokeWidth={2.5} />,
@@ -84,6 +67,25 @@ const sidebarNavItems = [
 		to: '/test',
 		section: 'test',
 	},
+	{
+		display: 'Shared With Me',
+		icon: <Share2 size={18} strokeWidth={2.5} />,
+		to: '/share-with-me',
+		section: 'share-with-me',
+	},
+	{
+		display: 'Storage',
+		icon: <CreditCard size={18} strokeWidth={2.5} />,
+		to: '/storage',
+		section: 'storage',
+	},
+	{
+		display: 'Trash',
+		icon: <Trash2 size={18} strokeWidth={2.5} />,
+		to: '/trash',
+		section: 'trash',
+	},
+
 ];
 
 export default function Sidebar() {

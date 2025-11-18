@@ -19,9 +19,25 @@ export const fileNodeManagerApi = {
 		return res.data;
 	},
 
+	getTrashedItems: async (params?: GetListFileNodeDto) => {
+		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
+			`${BASE_URL}/trash`,
+			{ params },
+		);
+		return res.data;
+	},
+
 	getHome: async (params?: GetListFileNodeDto) => {
 		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
 			`${BASE_URL}/home`,
+			{ params },
+		);
+		return res.data;
+	},
+
+	getSharedWithMe: async (params?: GetListFileNodeDto) => {
+		const res = await api.get<ResponseSuccess<PageDto<FileNode>>>(
+			`${BASE_URL}/share-with-me`,
 			{ params },
 		);
 		return res.data;
