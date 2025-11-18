@@ -1,6 +1,6 @@
 .container {
-	padding: 2rem;
-	max-width: 1200px;
+	// padding: 2rem;
+	// max-width: 1200px;
 	margin: 0 auto;
 
 	.header {
@@ -44,8 +44,8 @@
 
 			h2 {
 				font-size: 1.5rem;
-				font-weight: 600;
-				color: #111827;
+				// font-weight: 600;
+				// color: #111827;
 				margin-bottom: 1rem;
 			}
 
@@ -59,7 +59,11 @@
 
 				.progressFill {
 					height: 100%;
-					background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+					background: linear-gradient(
+						90deg,
+						#2563eb 0%,
+						#1e40af 100%
+					);
 					border-radius: 6px;
 					transition: width 0.3s ease;
 				}
@@ -84,8 +88,8 @@
 
 					.value {
 						font-size: 1.25rem;
-						font-weight: 600;
-						color: #111827;
+						// font-weight: 600;
+						// color: #111827;
 					}
 				}
 			}
@@ -120,8 +124,8 @@
 
 		h3 {
 			font-size: 1.25rem;
-			font-weight: 600;
-			color: #111827;
+			// font-weight: 600;
+			// color: #111827;
 			margin-bottom: 1.5rem;
 		}
 
@@ -146,8 +150,8 @@
 
 				.value {
 					font-size: 0.875rem;
-					color: #111827;
-					font-weight: 600;
+					// color: #111827;
+					// font-weight: 600;
 				}
 			}
 
