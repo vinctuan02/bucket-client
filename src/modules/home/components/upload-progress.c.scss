@@ -1,0 +1,174 @@
+/* Upload Progress Modal */
+.upload-progress-overlay {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	z-index: 100;
+	animation: slideIn 0.3s ease-in-out;
+}
+
+.upload-progress-modal {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+	width: 320px;
+	overflow: hidden;
+	transition:
+		width 0.3s ease,
+		height 0.3s ease;
+
+	&.collapsed {
+		width: 320px;
+
+		.upload-progress-content {
+			display: none;
+		}
+	}
+}
+
+.upload-progress-header {
+	background: #f3f4f6;
+	padding: 12px 16px;
+	border-bottom: 1px solid #e5e7eb;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	h3 {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: #111827;
+	}
+
+	.collapse-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #6b7280;
+		transition: color 0.2s ease;
+
+		&:hover {
+			color: #111827;
+		}
+	}
+}
+
+.upload-progress-content {
+	padding: 16px;
+}
+
+.upload-item {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.upload-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+
+	.upload-filename {
+		font-size: 13px;
+		color: #374151;
+		font-weight: 500;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		flex: 1;
+	}
+
+	.upload-percent {
+		font-size: 12px;
+		color: #6b7280;
+		font-weight: 600;
+		min-width: 35px;
+		text-align: right;
+	}
+}
+
+.upload-bar {
+	width: 100%;
+	height: 6px;
+	background: #e5e7eb;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.upload-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #2563eb, #1d4ed8);
+	border-radius: 3px;
+	transition: width 0.3s ease;
+
+	&.completed {
+		background: linear-gradient(90deg, #10b981, #059669);
+	}
+
+	&.error {
+		background: linear-gradient(90deg, #ef4444, #dc2626);
+	}
+}
+
+.upload-details {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 12px;
+	color: #6b7280;
+
+	.detail-row {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+		gap: 8px;
+
+		.detail-label {
+			font-size: 12px;
+			color: #6b7280;
+		}
+
+		.detail-speed {
+			font-size: 12px;
+			color: #2563eb;
+			font-weight: 600;
+		}
+	}
+}
+
+.upload-status {
+	font-size: 12px;
+	text-align: right;
+
+	.status-uploading {
+		color: #2563eb;
+		font-weight: 500;
+	}
+
+	.status-completed {
+		color: #10b981;
+		font-weight: 600;
+	}
+
+	.status-error {
+		color: #ef4444;
+		font-weight: 600;
+	}
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateX(400px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}

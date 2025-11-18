@@ -1,418 +1,407 @@
 'use client';
 
 import Page from '@/components/pages/c.page';
-import Table from '@/components/tables/c.table';
 import Grid from '@/components/tables/c.grid';
 import GridThumbnail from '@/components/tables/c.grid-thumbnail';
+import Table from '@/components/tables/c.table';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
-import { fileManagerApi, FileNode } from '@/modules/file-manager/file-manager.api';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Button, Space, message, Popconfirm } from 'antd';
-import { List, LayoutGrid, Folder, RotateCcw, Trash2 } from 'lucide-react';
-
-interface TrashFileNode extends FileNode {
-    key: string;
-}
-
-interface GetListTrashDto {
-    page?: number;
-    pageSize?: number;
-    keywords?: string;
-    fieldOrder?: string;
-    orderBy?: OrderDirection;
-    fileNodeParentId?: string;
-}
+import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
+import { fileNodeManagerApi } from '@/modules/home/home.api';
+import { fileNodeConfigsColumnTable } from '@/modules/home/home.const';
+import { GetListFileNodeDto } from '@/modules/home/home.dto';
+import { FileNode } from '@/modules/home/home.entity';
+import { Button, message } from 'antd';
+import { Folder, LayoutGrid, List } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 export default function TrashPage() {
-    const searchParams = useSearchParams();
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
-    const [files, setFiles] = useState<TrashFileNode[]>([]);
-    const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
-    const [loading, setLoading] = useState(false);
-    const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
-    const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<TrashFileNode[]>([]);
-    const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+	const [fileNodes, setFileNodes] = useState<FileNode[]>([]);
+	const [pagination, setPagination] = useState(PAGINATION_DEFAULT);
+	const [breadcrumbs, setBreadcrumbs] = useState<FileNode[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [loadingMore, setLoadingMore] = useState(false);
+	const [hasMore, setHasMore] = useState(true);
+	const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
 
-    const [query, setQuery] = useState<GetListTrashDto>({
-        page: 1,
-        pageSize: 10,
-        fileNodeParentId: undefined,
-    });
+	const [folderQuery, setFolderQuery] = useState<GetListFileNodeDto>(
+		new GetListFileNodeDto({ isDelete: true }),
+	);
+	const observerTarget = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const params = Object.fromEntries(searchParams.entries());
-        if (params.viewMode === 'table' || params.viewMode === 'grid') {
-            setViewMode(params.viewMode);
-        }
-    }, [searchParams]);
+	useEffect(() => {
+		const params = Object.fromEntries(searchParams.entries());
 
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            fetchTrash();
-        }, 250);
+		// Set viewMode from URL
+		if (params.viewMode === 'table' || params.viewMode === 'grid') {
+			setViewMode(params.viewMode);
+		}
 
-        return () => clearTimeout(delayDebounce);
-    }, [query.page, query.pageSize, query.keywords, query.fileNodeParentId]);
+		// Filter out viewMode before creating query
+		const { viewMode: _, ...apiParams } = params;
 
-    const fetchTrash = async () => {
-        try {
-            setLoading(true);
-            const res = await fileManagerApi.getTrash(query);
+		const newQuery = new GetListFileNodeDto({
+			...apiParams,
+			isDelete: true,
+			page: Number(apiParams.page) || 1,
+			pageSize: Number(apiParams.pageSize) || 10,
+		});
 
-            const items = res.data?.items?.map((item) => ({
-                ...item,
-                key: item.id,
-            })) || [];
+		setFolderQuery(newQuery);
 
-            setFiles(items);
+		// Fetch breadcrumbs on mount if fileNodeParentId exists
+		if (newQuery.fileNodeParentId) {
+			fetchBreadcrumbs(newQuery.fileNodeParentId);
+		} else {
+			// Set default "Trash" breadcrumb when no fileNodeParentId
+			setBreadcrumbs([{ id: '', name: 'Trash' } as FileNode]);
+		}
+	}, [searchParams]);
 
-            if (res.data?.metadata) {
-                setPagination({
-                    page: res.data.metadata.page || 1,
-                    totalPages: Math.ceil(
-                        (res.data.metadata.totalItems || 0) / (res.data.metadata.limit || 10),
-                    ),
-                    totalItems: res.data.metadata.totalItems || 0,
-                    itemsPerPage: res.data.metadata.limit || 10,
-                });
-            }
-        } catch (error) {
-            message.error('Failed to fetch trash');
-        } finally {
-            setLoading(false);
-        }
-    };
+	useEffect(() => {
+		const delayDebounce = setTimeout(() => {
+			fetchFileNodes(folderQuery);
+			syncQueryToUrl(folderQuery);
+			// Always fetch breadcrumbs when fileNodeParentId exists
+			if (folderQuery.fileNodeParentId) {
+				fetchBreadcrumbs(folderQuery.fileNodeParentId);
+			} else {
+				// Reset breadcrumbs to empty when no fileNodeParentId
+				setBreadcrumbs([]);
+			}
+		}, 250);
 
-    const handleFolderClick = (folder: TrashFileNode) => {
-        setCurrentFolderId(folder.id);
-        setBreadcrumbs([...breadcrumbs, folder]);
-        setQuery((prev) => ({
-            ...prev,
-            fileNodeParentId: folder.id,
-            page: 1,
-        }));
-        setSelectedRowKeys([]);
-    };
+		return () => clearTimeout(delayDebounce);
+	}, [
+		folderQuery.keywords,
+		folderQuery.page,
+		folderQuery.pageSize,
+		folderQuery.fieldOrder,
+		folderQuery.orderBy,
+		folderQuery.fileNodeParentId,
+	]);
 
-    const handleBreadcrumbClick = (index: number) => {
-        if (index === -1) {
-            setCurrentFolderId(null);
-            setBreadcrumbs([]);
-            setQuery((prev) => ({
-                ...prev,
-                fileNodeParentId: undefined,
-                page: 1,
-            }));
-        } else {
-            const folder = breadcrumbs[index];
-            setCurrentFolderId(folder.id);
-            setBreadcrumbs(breadcrumbs.slice(0, index + 1));
-            setQuery((prev) => ({
-                ...prev,
-                fileNodeParentId: folder.id,
-                page: 1,
-            }));
-        }
-        setSelectedRowKeys([]);
-    };
+	const syncQueryToUrl = (
+		params: GetListFileNodeDto,
+		mode?: 'table' | 'grid',
+	) => {
+		const query = new URLSearchParams();
 
-    const handleRestore = async (id: string) => {
-        try {
-            await fileManagerApi.restore(id);
-            message.success('File restored successfully');
-            fetchTrash();
-            setSelectedRowKeys([]);
-        } catch (error) {
-            message.error('Failed to restore file');
-        }
-    };
+		if (params.keywords) query.set('keywords', params.keywords);
+		if (params.page) query.set('page', String(params.page));
+		if (params.pageSize) query.set('pageSize', String(params.pageSize));
+		if (params.fieldOrder) query.set('fieldOrder', params.fieldOrder);
+		if (params.orderBy) query.set('orderBy', params.orderBy);
+		if (params.fileNodeParentId)
+			query.set('fileNodeParentId', params.fileNodeParentId);
+		query.set('viewMode', mode || viewMode);
 
-    const handleDelete = async (id: string) => {
-        try {
-            await fileManagerApi.deletePermanent(id);
-            message.success('File deleted permanently');
-            fetchTrash();
-            setSelectedRowKeys([]);
-        } catch (error) {
-            message.error('Failed to delete file');
-        }
-    };
+		router.push(`?${query.toString()}`, { scroll: false });
+	};
 
-    const handleRestoreSelected = async () => {
-        try {
-            setLoading(true);
-            await Promise.all(selectedRowKeys.map((id) => fileManagerApi.restore(id)));
-            message.success('Files restored successfully');
-            fetchTrash();
-            setSelectedRowKeys([]);
-        } catch (error) {
-            message.error('Failed to restore files');
-        } finally {
-            setLoading(false);
-        }
-    };
+	const fetchFileNodes = async (
+		params?: GetListFileNodeDto,
+		append = false,
+	) => {
+		if (!params?.isDelete) return;
 
-    const handleDeleteSelected = async () => {
-        try {
-            setLoading(true);
-            await Promise.all(selectedRowKeys.map((id) => fileManagerApi.deletePermanent(id)));
-            message.success('Files deleted permanently');
-            fetchTrash();
-            setSelectedRowKeys([]);
-        } catch (error) {
-            message.error('Failed to delete files');
-        } finally {
-            setLoading(false);
-        }
-    };
+		if (append) {
+			setLoadingMore(true);
+		} else {
+			setLoading(true);
+		}
 
-    const handleSearch = (value: string) => {
-        setQuery((prev) => ({ ...prev, keywords: value, page: 1 }));
-    };
+		try {
+			// Ensure isDelete is always true for trash
+			const queryParams = new GetListFileNodeDto({
+				...params,
+				isDelete: true,
+			});
+			const { data } = await fileNodeManagerApi.getList(queryParams);
 
-    const handlePageChange = (page: number) => {
-        setQuery((prev) => ({ ...prev, page }));
-    };
+			if (append) {
+				setFileNodes((prev) => [...prev, ...(data?.items ?? [])]);
+			} else {
+				setFileNodes(data?.items ?? []);
+			}
 
-    const trashColumns = [
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-            label: 'name',
-            field: 'name',
-        },
-        {
-            title: 'Type',
-            dataIndex: 'type',
-            key: 'type',
-            label: 'type',
-            field: 'type',
-        },
-        {
-            title: 'Size',
-            dataIndex: 'fileBucket',
-            key: 'size',
-            label: 'size',
-            field: 'size',
-            render: (fileBucket: any) => {
-                if (!fileBucket) return '-';
-                const bytes = fileBucket.fileSize;
-                if (bytes === 0) return '0 B';
-                const k = 1024;
-                const sizes = ['B', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-            },
-        },
-    ];
+			if (data?.metadata) {
+				setPagination({
+					page: data.metadata.page,
+					totalPages: data.metadata.totalPages,
+					totalItems: data.metadata.totalItems,
+					itemsPerPage: data.metadata.pageSize,
+				});
+				setHasMore(data.metadata.page < data.metadata.totalPages);
+			}
+		} catch (err) {
+			message.error('Failed to fetch trash');
+		} finally {
+			setLoading(false);
+			setLoadingMore(false);
+		}
+	};
 
-    const handleRowClick = (row: TrashFileNode) => {
-        if (row.type === 'folder') {
-            handleFolderClick(row);
-        }
-    };
+	const fetchBreadcrumbs = async (folderId: string) => {
+		try {
+			const { data } = await fileNodeManagerApi.getBreadcrumbs(folderId);
+			// Add "Trash" as the first breadcrumb
+			if (data?.[0]) {
+				data[0].name = 'Trash';
+			}
 
-    return (
-        <Page title="Trash" isShowTitle={false}>
-            <div className="relative">
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '16px',
-                    }}
-                >
-                    <div>
-                        <h2 style={{ margin: 0 }}>Trash</h2>
-                        {breadcrumbs.length > 0 && (
-                            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '12px' }}>
-                                {breadcrumbs.map((b, i) => (
-                                    <span key={b.id}>
-                                        {i > 0 && ' / '}
-                                        <a
-                                            onClick={() => handleBreadcrumbClick(i)}
-                                            style={{ cursor: 'pointer', color: '#1890ff' }}
-                                        >
-                                            {b.name}
-                                        </a>
-                                    </span>
-                                ))}
-                            </p>
-                        )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {selectedRowKeys.length > 0 && (
-                            <Space>
-                                <span>{selectedRowKeys.length} selected</span>
-                                <Button
-                                    type="primary"
-                                    icon={<RotateCcw size={14} />}
-                                    onClick={handleRestoreSelected}
-                                    loading={loading}
-                                >
-                                    Restore
-                                </Button>
-                                <Popconfirm
-                                    title="Delete permanently?"
-                                    onConfirm={handleDeleteSelected}
-                                    okText="Delete"
-                                    cancelText="Cancel"
-                                    okButtonProps={{ danger: true }}
-                                >
-                                    <Button danger icon={<Trash2 size={14} />} loading={loading} />
-                                </Popconfirm>
-                            </Space>
-                        )}
-                        <Button
-                            type={viewMode === 'table' ? 'primary' : 'default'}
-                            icon={<List size={16} />}
-                            onClick={() => setViewMode('table')}
-                        />
-                        <Button
-                            type={viewMode === 'grid' ? 'primary' : 'default'}
-                            icon={<LayoutGrid size={16} />}
-                            onClick={() => setViewMode('grid')}
-                        />
-                    </div>
-                </div>
+			setBreadcrumbs(data ?? []);
+		} catch (err) {
+			console.error('Fetch Breadcrumb Error:', err);
+		}
+	};
 
-                {viewMode === 'table' ? (
-                    <Table
-                        data={files}
-                        columns={trashColumns}
-                        onRestore={handleRestore}
-                        onDelete={handleDelete}
-                        onSearch={handleSearch}
-                        pagination={pagination}
-                        onPageChange={handlePageChange}
-                        onRowClick={handleRowClick}
-                        loading={loading}
-                    />
-                ) : (
-                    <Grid
-                        data={files}
-                        onDelete={handleDelete}
-                        onSearch={handleSearch}
-                        pagination={pagination}
-                        onPageChange={handlePageChange}
-                        loading={loading}
-                        renderCard={(item: TrashFileNode) => {
-                            const isSelected = selectedRowKeys.includes(item.id);
-                            return (
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        cursor: item.type === 'folder' ? 'pointer' : 'default',
-                                        position: 'relative',
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        backgroundColor: isSelected ? '#e6f7ff' : 'transparent',
-                                    }}
-                                    onClick={() => {
-                                        if (item.type === 'folder') {
-                                            handleFolderClick(item);
-                                        }
-                                    }}
-                                >
-                                    {/* Checkbox */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            top: '8px',
-                                            left: '8px',
-                                            zIndex: 10,
-                                        }}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => {
-                                                if (isSelected) {
-                                                    setSelectedRowKeys(selectedRowKeys.filter((k) => k !== item.id));
-                                                } else {
-                                                    setSelectedRowKeys([...selectedRowKeys, item.id]);
-                                                }
-                                            }}
-                                            style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                                        />
-                                    </div>
+	const handleDelete = async (id: string) => {
+		if (!confirm('Delete this file permanently?')) return;
+		try {
+			await fileNodeManagerApi.delete(id);
+			fetchFileNodes(folderQuery);
+			message.success('File deleted');
+		} catch (err) {
+			message.error('Error deleting file');
+		}
+	};
 
-                                    {item.type === 'file' ? (
-                                        <GridThumbnail fileNodeId={item.id} fileName={item.name} />
-                                    ) : (
-                                        <div
-                                            style={{
-                                                height: '120px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                background: '#f5f5f5',
-                                                borderRadius: '4px',
-                                                marginBottom: '8px',
-                                            }}
-                                        >
-                                            <Folder size={48} color="#1890ff" />
-                                        </div>
-                                    )}
-                                    <div
-                                        style={{
-                                            fontWeight: 500,
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            textAlign: 'center',
-                                            marginBottom: '8px',
-                                        }}
-                                    >
-                                        {item.name}
-                                    </div>
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            gap: '4px',
-                                            marginTop: 'auto',
-                                        }}
-                                    >
-                                        <Button
-                                            type="primary"
-                                            size="small"
-                                            icon={<RotateCcw size={12} />}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRestore(item.id);
-                                            }}
-                                            style={{ flex: 1 }}
-                                        />
-                                        <Popconfirm
-                                            title="Delete permanently?"
-                                            onConfirm={() => handleDelete(item.id)}
-                                            okText="Delete"
-                                            cancelText="Cancel"
-                                            okButtonProps={{ danger: true }}
-                                        >
-                                            <Button
-                                                danger
-                                                size="small"
-                                                icon={<Trash2 size={12} />}
-                                                onClick={(e) => e.stopPropagation()}
-                                                style={{ flex: 1 }}
-                                            />
-                                        </Popconfirm>
-                                    </div>
-                                </div>
-                            );
-                        }}
-                    />
-                )}
-            </div>
-        </Page>
-    );
+	const handleRestore = async (id: string) => {
+		try {
+			await fileNodeManagerApi.restore(id);
+			fetchFileNodes(folderQuery);
+			message.success('File restored');
+		} catch (err) {
+			message.error('Error restoring file');
+		}
+	};
+
+	const handleSearch = (value: string) => {
+		setFileNodes([]);
+		setHasMore(true);
+		setFolderQuery(
+			(prev) =>
+				new GetListFileNodeDto({
+					...prev,
+					keywords: value,
+					page: 1,
+					isDelete: true,
+				}),
+		);
+	};
+
+	const handleSortChange = (field: string, direction: OrderDirection) => {
+		setFileNodes([]);
+		setHasMore(true);
+		setFolderQuery(
+			(prev) =>
+				new GetListFileNodeDto({
+					...prev,
+					fieldOrder: field as any,
+					orderBy: direction,
+					page: 1,
+					isDelete: true,
+				}),
+		);
+	};
+
+	const handleRowClick = (row: FileNode) => {
+		if (row.type === 'folder') {
+			setFileNodes([]);
+			setHasMore(true);
+			setFolderQuery((prev) => {
+				const newQuery = new GetListFileNodeDto({
+					...prev,
+					fileNodeParentId: row.id,
+					page: 1,
+					isDelete: true,
+				});
+				fetchBreadcrumbs(row.id);
+				syncQueryToUrl(newQuery);
+				return newQuery;
+			});
+		}
+	};
+
+	const handleBreadcrumbClick = (folder: FileNode) => {
+		setFileNodes([]);
+		setHasMore(true);
+
+		setFolderQuery((prev) => {
+			const newQuery = new GetListFileNodeDto({
+				...prev,
+				fileNodeParentId: folder.id,
+				page: 1,
+				isDelete: true,
+			});
+			syncQueryToUrl(newQuery);
+			return newQuery;
+		});
+	};
+
+	// Infinite scroll observer
+	useEffect(() => {
+		if (!hasMore || loading || loadingMore) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && folderQuery.isDelete) {
+					const nextPage = (pagination.page || 1) + 1;
+					const nextQuery = new GetListFileNodeDto({
+						...folderQuery,
+						page: nextPage,
+					});
+					fetchFileNodes(nextQuery, true);
+				}
+			},
+			{ threshold: 0.1 },
+		);
+
+		const currentTarget = observerTarget.current;
+		if (currentTarget) {
+			observer.observe(currentTarget);
+		}
+
+		return () => {
+			if (currentTarget) {
+				observer.unobserve(currentTarget);
+			}
+		};
+	}, [hasMore, loading, loadingMore, pagination.page]);
+
+	return (
+		<Page title="Trash" isShowTitle={false}>
+			<div className="relative">
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom: '16px',
+						flexShrink: 0,
+					}}
+				>
+					<Breadcrumbs
+						data={breadcrumbs}
+						onClick={handleBreadcrumbClick}
+					/>
+					<div style={{ display: 'flex', gap: '8px' }}>
+						<Button
+							type={viewMode === 'table' ? 'primary' : 'default'}
+							icon={<List size={16} />}
+							onClick={() => {
+								setViewMode('table');
+								syncQueryToUrl(folderQuery, 'table');
+							}}
+						/>
+						<Button
+							type={viewMode === 'grid' ? 'primary' : 'default'}
+							icon={<LayoutGrid size={16} />}
+							onClick={() => {
+								setViewMode('grid');
+								syncQueryToUrl(folderQuery, 'grid');
+							}}
+						/>
+					</div>
+				</div>
+
+				{viewMode === 'table' ? (
+					<Table
+						data={fileNodes}
+						columns={fileNodeConfigsColumnTable}
+						onDelete={handleDelete}
+						onRestore={handleRestore}
+						onSearch={handleSearch}
+						onSortChange={handleSortChange}
+						onRowClick={handleRowClick}
+						loading={loading}
+						loadingMore={loadingMore}
+						showRestore={true}
+					/>
+				) : (
+					<Grid
+						data={fileNodes}
+						onDelete={handleDelete}
+						onRestore={handleRestore}
+						onRowClick={handleRowClick}
+						loading={loading}
+						loadingMore={loadingMore}
+						onSearch={handleSearch}
+						showRestore={true}
+						renderCard={(item: FileNode) => (
+							<div
+								style={{
+									cursor:
+										item.type === 'file'
+											? 'pointer'
+											: 'default',
+								}}
+								onClick={() =>
+									item.type === 'file' &&
+									console.log(
+										'File preview not available in trash',
+									)
+								}
+							>
+								{item.type === 'file' ? (
+									<GridThumbnail
+										fileNodeId={item.id}
+										fileName={item.name}
+									/>
+								) : (
+									<div
+										style={{
+											height: '120px',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											background: '#f5f5f5',
+											borderRadius: '4px',
+											marginBottom: '8px',
+											fontSize: '48px',
+										}}
+									>
+										<Folder size={48} color="#1890ff" />
+									</div>
+								)}
+								<div
+									style={{
+										fontWeight: 500,
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+										whiteSpace: 'nowrap',
+										width: '100%',
+										textAlign: 'center',
+									}}
+								>
+									{item.name}
+								</div>
+							</div>
+						)}
+					/>
+				)}
+
+				{/* Infinite scroll trigger */}
+				{hasMore && !loading && (
+					<div
+						ref={observerTarget}
+						style={{
+							height: '20px',
+							margin: '20px 0',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+						}}
+					>
+						{loadingMore && <span>Loading more...</span>}
+					</div>
+				)}
+			</div>
+		</Page>
+	);
 }

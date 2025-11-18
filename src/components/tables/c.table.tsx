@@ -34,6 +34,8 @@ interface TableProps<T> {
 	onSortChange?: (field: string, direction: OrderDirection) => void;
 	onRowClick?: (row: T) => void;
 	loading?: boolean;
+	loadingMore?: boolean;
+	showRestore?: boolean;
 }
 
 export default function Table<T extends { id?: number | string }>({
@@ -52,6 +54,8 @@ export default function Table<T extends { id?: number | string }>({
 	onSortChange,
 	onRowClick,
 	loading,
+	loadingMore,
+	showRestore,
 }: TableProps<T>) {
 	const [search, setSearch] = useState('');
 	const [showCreateMenu, setShowCreateMenu] = useState(false);
@@ -123,6 +127,32 @@ export default function Table<T extends { id?: number | string }>({
 					}
 				}
 
+				// Handle file info tooltip for name column
+				if (col.field === 'name' && (record as any).fileBucket) {
+					const fileInfo = (record as any).fileBucket;
+					const fileSizeMB = (
+						Number(fileInfo.fileSize) /
+						1024 /
+						1024
+					).toFixed(2);
+					const tooltipContent = (
+						<div style={{ whiteSpace: 'nowrap' }}>
+							<div>
+								<strong>Name:</strong> {actualValue}
+							</div>
+							<div>
+								<strong>Size:</strong> {fileSizeMB} MB
+							</div>
+							<div>
+								<strong>Type:</strong> {fileInfo.contentType}
+							</div>
+						</div>
+					);
+					return (
+						<Tooltip title={tooltipContent}>{actualValue}</Tooltip>
+					);
+				}
+
 				return actualValue ?? '-';
 			},
 		})),
@@ -138,7 +168,7 @@ export default function Table<T extends { id?: number | string }>({
 								className="table__actions"
 								onClick={(e) => e.stopPropagation()}
 							>
-								{onRestore && (
+								{showRestore && onRestore && (
 									<Tooltip title="Restore">
 										<button
 											className="icon-btn restore"
@@ -150,7 +180,7 @@ export default function Table<T extends { id?: number | string }>({
 										</button>
 									</Tooltip>
 								)}
-								{onEdit && (
+								{!showRestore && onEdit && (
 									<Tooltip title="Edit">
 										<button
 											className="icon-btn edit"
@@ -172,7 +202,7 @@ export default function Table<T extends { id?: number | string }>({
 										</button>
 									</Tooltip>
 								)}
-								{onShare && (
+								{!showRestore && onShare && (
 									<Tooltip title="Share">
 										<button
 											className="icon-btn share"

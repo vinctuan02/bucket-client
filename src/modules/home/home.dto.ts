@@ -26,6 +26,8 @@ export class GetListFileNodeDto extends BaseQueryDto {
 
 	fieldOrder: FileNodeFM = FileNodeFM.name;
 
+	isDelete?: boolean;
+
 	constructor(init?: Partial<GetListFileNodeDto>) {
 		super();
 		Object.assign(this, init);

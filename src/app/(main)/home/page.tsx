@@ -7,7 +7,7 @@ import Table from '@/components/tables/c.table';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { OrderDirection } from '@/modules/commons/enum/common.enum';
 import { fileNodeManagerApi } from '@/modules/home/home.api';
-import { fileNodeConifgsColumnTable } from '@/modules/home/home.const';
+import { fileNodeConfigsColumnTable } from '@/modules/home/home.const';
 import { GetListFileNodeDto } from '@/modules/home/home.dto';
 import { FileNode } from '@/modules/home/home.entity';
 
@@ -16,6 +16,9 @@ import FilePreview from '@/modules/commons/components/common.c.read-file';
 import FileNodeShareModal from '@/modules/home/components/file-node-permission.c.modal';
 import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
 import FileNodeModal from '@/modules/home/components/home.c.modal';
+import UploadProgress, {
+	UploadProgressData,
+} from '@/modules/home/components/upload-progress.c';
 import { FileNodeFM } from '@/modules/home/home.enum';
 import { Button } from 'antd';
 import { Folder, LayoutGrid, List } from 'lucide-react';
@@ -44,6 +47,8 @@ export default function HomePage() {
 	);
 	const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
 	const [gridPageSize, setGridPageSize] = useState(20); // Default grid page size
+	const [uploadProgress, setUploadProgress] =
+		useState<UploadProgressData | null>(null);
 
 	// Calculate grid page size based on viewport
 	useEffect(() => {
@@ -228,7 +233,10 @@ export default function HomePage() {
 		);
 	};
 
-	const handleSave = async (data: any) => {
+	const handleSave = async (
+		data: any,
+		onProgress?: (uploadedBytes: number) => void,
+	) => {
 		try {
 			if (modalType === 'folder') {
 				await fileNodeManagerApi.createFolder({
@@ -255,12 +263,35 @@ export default function HomePage() {
 				if (!uploadUrl)
 					throw new Error('No upload URL received from server');
 
-				await fetch(uploadUrl, {
-					method: 'PUT',
-					headers: {
-						'Content-Type': file.type,
-					},
-					body: file,
+				// Use XMLHttpRequest to track upload progress
+				await new Promise((resolve, reject) => {
+					const xhr = new XMLHttpRequest();
+
+					xhr.upload.addEventListener('progress', (e) => {
+						if (e.lengthComputable) {
+							onProgress?.(e.loaded);
+						}
+					});
+
+					xhr.addEventListener('load', () => {
+						if (xhr.status === 200) {
+							resolve(undefined);
+						} else {
+							reject(
+								new Error(
+									`Upload failed with status ${xhr.status}`,
+								),
+							);
+						}
+					});
+
+					xhr.addEventListener('error', () => {
+						reject(new Error('Upload error'));
+					});
+
+					xhr.open('PUT', uploadUrl);
+					xhr.setRequestHeader('Content-Type', file.type);
+					xhr.send(file);
 				});
 			}
 
@@ -351,7 +382,7 @@ export default function HomePage() {
 					{viewMode === 'table' ? (
 						<Table
 							data={FileNodes}
-							columns={fileNodeConifgsColumnTable}
+							columns={fileNodeConfigsColumnTable}
 							onCreateFolder={() => {
 								setEditingFolder({
 									fileNodeParentId:
@@ -476,8 +507,12 @@ export default function HomePage() {
 							setModalType(null);
 						}}
 						onSave={handleSave}
+						onUploadProgress={setUploadProgress}
 					/>
 				)}
+
+				{/* Upload Progress Modal */}
+				<UploadProgress data={uploadProgress} />
 
 				{previewId && (
 					<FilePreview

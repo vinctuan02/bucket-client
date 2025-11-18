@@ -13,6 +13,8 @@ export interface FileNode {
 	fileNodeParentId?: string;
 	fileBucketId?: string;
 	fileBucket?: {
+		id: string;
+		fileName: string;
 		fileSize: number;
 		contentType: string;
 	};

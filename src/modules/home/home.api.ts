@@ -105,4 +105,12 @@ export const fileNodeManagerApi = {
 	// 	await api.patch(`${BASE_URL}/${id}`, data),
 
 	delete: async (id: string) => await api.delete(`${BASE_URL}/${id}`),
+
+	restore: async (id: string) => {
+		const res = await api.put<ResponseSuccess<FileNode>>(
+			`${BASE_URL}/${id}/restore`,
+			{},
+		);
+		return res.data;
+	},
 };

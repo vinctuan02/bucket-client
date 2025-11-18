@@ -4,7 +4,7 @@
 import Page from '@/components/pages/c.page';
 import Table from '@/components/tables/c.table';
 import FilePreview from '@/modules/commons/components/common.c.read-file';
-import { fileNodeConifgsColumnTable } from '@/modules/home/home.const';
+import { fileNodeConfigsColumnTable } from '@/modules/home/home.const';
 import { FileNode } from '@/modules/home/home.entity';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -54,7 +54,7 @@ export default function SharePage() {
 
 			<Table
 				data={children}
-				columns={fileNodeConifgsColumnTable}
+				columns={fileNodeConfigsColumnTable}
 				onRowClick={handleRowClick}
 				// hideActions
 			/>

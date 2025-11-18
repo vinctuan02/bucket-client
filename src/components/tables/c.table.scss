@@ -122,6 +122,14 @@
 					transform: scale(1.1);
 				}
 			}
+
+			&.restore {
+				color: #48bb78;
+				&:hover {
+					background-color: rgba(72, 187, 120, 0.1);
+					transform: scale(1.1);
+				}
+			}
 		}
 	}
 }

@@ -9,7 +9,7 @@ import {
 	Skeleton,
 	Tooltip,
 } from 'antd';
-import { Edit, Trash, UserPlus } from 'lucide-react';
+import { Edit, RotateCcw, Trash, UserPlus } from 'lucide-react';
 import React, { useState } from 'react';
 import './c.grid.scss';
 
@@ -18,14 +18,17 @@ interface GridProps<T> {
 	onEdit?: (row: T) => void;
 	onDelete?: (id: string) => void;
 	onShare?: (row: T) => void;
+	onRestore?: (id: string) => void;
 	onRowClick?: (row: T) => void;
 	loading?: boolean;
+	loadingMore?: boolean;
 	renderCard?: (item: T) => React.ReactNode;
 	pagination?: PaginationInfo;
 	onPageChange?: (page: number) => void;
 	onCreateFolder?: () => void;
 	onCreateFile?: () => void;
 	onSearch?: (value: string) => void;
+	showRestore?: boolean;
 }
 
 export default function Grid<
@@ -35,14 +38,17 @@ export default function Grid<
 	onEdit,
 	onDelete,
 	onShare,
+	onRestore,
 	onRowClick,
 	loading,
+	loadingMore,
 	renderCard,
 	pagination,
 	onPageChange,
 	onCreateFolder,
 	onCreateFile,
 	onSearch,
+	showRestore,
 }: GridProps<T>) {
 	const [search, setSearch] = useState('');
 	const [showCreateMenu, setShowCreateMenu] = useState(false);
@@ -115,64 +121,114 @@ export default function Grid<
 			{/* Grid Content with Scroll */}
 			<div className="grid-content">
 				<div className="grid-container">
-					{data.map((item) => (
-						<div
-							key={item.id}
-							className="grid-item"
-							onClick={() => onRowClick?.(item)}
-						>
-							<div className="grid-card">
-								{renderCard ? (
-									renderCard(item)
-								) : (
-									<div className="grid-card-default">
-										<div className="grid-card-icon">📄</div>
-										<div className="grid-card-name">
-											{(item as any).name || 'Unnamed'}
-										</div>
-									</div>
-								)}
-
-								<div
-									className="grid-card-actions"
-									onClick={(e) => e.stopPropagation()}
-								>
-									{onEdit && (
-										<Tooltip title="Edit">
-											<button
-												className="icon-btn edit"
-												onClick={() => onEdit(item)}
-											>
-												<Edit size={16} />
-											</button>
-										</Tooltip>
-									)}
-									{onDelete && (
-										<Tooltip title="Delete">
-											<button
-												className="icon-btn delete"
-												onClick={() =>
-													onDelete(item.id as string)
-												}
-											>
-												<Trash size={16} />
-											</button>
-										</Tooltip>
-									)}
-									{onShare && (
-										<Tooltip title="Share">
-											<button
-												className="icon-btn share"
-												onClick={() => onShare(item)}
-											>
-												<UserPlus size={16} />
-											</button>
-										</Tooltip>
-									)}
+					{data.map((item) => {
+						const fileInfo = (item as any).fileBucket;
+						const tooltipContent = fileInfo ? (
+							<div style={{ whiteSpace: 'nowrap' }}>
+								<div>
+									<strong>Name:</strong> {(item as any).name}
+								</div>
+								<div>
+									<strong>Size:</strong>{' '}
+									{(
+										Number(fileInfo.fileSize) /
+										1024 /
+										1024
+									).toFixed(2)}{' '}
+									MB
+								</div>
+								<div>
+									<strong>Type:</strong>{' '}
+									{fileInfo.contentType}
 								</div>
 							</div>
-						</div>
-					))}
+						) : (
+							(item as any).name
+						);
+
+						return (
+							<Tooltip title={tooltipContent} key={item.id}>
+								<div
+									className="grid-item"
+									onClick={() => onRowClick?.(item)}
+								>
+									<div className="grid-card">
+										{renderCard ? (
+											renderCard(item)
+										) : (
+											<div className="grid-card-default">
+												<div className="grid-card-icon">
+													📄
+												</div>
+												<div className="grid-card-name">
+													{(item as any).name ||
+														'Unnamed'}
+												</div>
+											</div>
+										)}
+
+										<div
+											className="grid-card-actions"
+											onClick={(e) => e.stopPropagation()}
+										>
+											{showRestore && onRestore && (
+												<Tooltip title="Restore">
+													<button
+														className="icon-btn restore"
+														onClick={() =>
+															onRestore(
+																item.id as string,
+															)
+														}
+													>
+														<RotateCcw size={16} />
+													</button>
+												</Tooltip>
+											)}
+											{!showRestore && onEdit && (
+												<Tooltip title="Edit">
+													<button
+														className="icon-btn edit"
+														onClick={() =>
+															onEdit(item)
+														}
+													>
+														<Edit size={16} />
+													</button>
+												</Tooltip>
+											)}
+											{onDelete && (
+												<Tooltip title="Delete">
+													<button
+														className="icon-btn delete"
+														onClick={() =>
+															onDelete(
+																item.id as string,
+															)
+														}
+													>
+														<Trash size={16} />
+													</button>
+												</Tooltip>
+											)}
+											{!showRestore && onShare && (
+												<Tooltip title="Share">
+													<button
+														className="icon-btn share"
+														onClick={() =>
+															onShare(item)
+														}
+													>
+														<UserPlus size={16} />
+													</button>
+												</Tooltip>
+											)}
+										</div>
+									</div>
+								</div>
+							</Tooltip>
+						);
+					})}
 				</div>
 
 				{data.length === 0 && (
