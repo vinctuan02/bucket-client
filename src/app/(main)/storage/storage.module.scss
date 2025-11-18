@@ -1,10 +1,12 @@
 .container {
-	// padding: 2rem;
-	// max-width: 1200px;
-	margin: 0 auto;
+	padding: 0;
+	max-width: 100%;
+	margin: 0;
+	width: 100%;
 
 	.header {
 		margin-bottom: 2rem;
+		padding: 0 20px;
 
 		h1 {
 			font-size: 2rem;
@@ -21,10 +23,12 @@
 
 	.mainCard {
 		background: #ffffff;
-		border: 1px solid #e5e7eb;
-		border-radius: 1rem;
-		padding: 2rem;
-		margin-bottom: 2rem;
+		border: none;
+		border-radius: 0;
+		padding: 2rem 20px;
+		margin-bottom: 0;
+		margin-left: 0;
+		margin-right: 0;
 		display: flex;
 		gap: 2rem;
 		align-items: flex-start;
@@ -118,9 +122,11 @@
 
 	.breakdownCard {
 		background: #ffffff;
-		border: 1px solid #e5e7eb;
-		border-radius: 1rem;
-		padding: 2rem;
+		border: none;
+		border-radius: 0;
+		padding: 2rem 20px;
+		margin-left: 0;
+		margin-right: 0;
 
 		h3 {
 			font-size: 1.25rem;

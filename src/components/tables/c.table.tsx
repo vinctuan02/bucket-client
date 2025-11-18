@@ -5,11 +5,17 @@ import {
 	IConfigTableColumn,
 	PaginationInfo,
 } from '@/modules/commons/interface/common.interface';
-import type { TableProps as AntTableProps } from 'antd';
-import { Table as AntTable, Button, Input, Skeleton, Tooltip } from 'antd';
-import { Edit, Trash, UserPlus, RotateCcw } from 'lucide-react';
-import React, { useState } from 'react';
 import CreateMenu from '@/modules/home/components/home.c.create-menu';
+import type { TableProps as AntTableProps } from 'antd';
+import {
+	Pagination as AntPagination,
+	Table as AntTable,
+	Button,
+	Input,
+	Tooltip,
+} from 'antd';
+import { Edit, RotateCcw, Trash, UserPlus } from 'lucide-react';
+import React, { useState } from 'react';
 import './c.table.scss';
 
 interface TableProps<T> {
@@ -123,63 +129,63 @@ export default function Table<T extends { id?: number | string }>({
 		// Actions column
 		...(onEdit || onDelete || onShare || onRestore
 			? [
-				{
-					title: '',
-					key: 'actions',
-					width: 120,
-					render: (_: any, record: T) => (
-						<div
-							className="table__actions"
-							onClick={(e) => e.stopPropagation()}
-						>
-							{onRestore && (
-								<Tooltip title="Restore">
-									<button
-										className="icon-btn restore"
-										onClick={() =>
-											onRestore(record.id as string)
-										}
-									>
-										<RotateCcw size={16} />
-									</button>
-								</Tooltip>
-							)}
-							{onEdit && (
-								<Tooltip title="Edit">
-									<button
-										className="icon-btn edit"
-										onClick={() => onEdit(record)}
-									>
-										<Edit size={16} />
-									</button>
-								</Tooltip>
-							)}
-							{onDelete && (
-								<Tooltip title="Delete">
-									<button
-										className="icon-btn delete"
-										onClick={() =>
-											onDelete(record.id as string)
-										}
-									>
-										<Trash size={16} />
-									</button>
-								</Tooltip>
-							)}
-							{onShare && (
-								<Tooltip title="Share">
-									<button
-										className="icon-btn share"
-										onClick={() => onShare(record)}
-									>
-										<UserPlus size={16} />
-									</button>
-								</Tooltip>
-							)}
-						</div>
-					),
-				},
-			]
+					{
+						title: '',
+						key: 'actions',
+						width: 120,
+						render: (_: any, record: T) => (
+							<div
+								className="table__actions"
+								onClick={(e) => e.stopPropagation()}
+							>
+								{onRestore && (
+									<Tooltip title="Restore">
+										<button
+											className="icon-btn restore"
+											onClick={() =>
+												onRestore(record.id as string)
+											}
+										>
+											<RotateCcw size={16} />
+										</button>
+									</Tooltip>
+								)}
+								{onEdit && (
+									<Tooltip title="Edit">
+										<button
+											className="icon-btn edit"
+											onClick={() => onEdit(record)}
+										>
+											<Edit size={16} />
+										</button>
+									</Tooltip>
+								)}
+								{onDelete && (
+									<Tooltip title="Delete">
+										<button
+											className="icon-btn delete"
+											onClick={() =>
+												onDelete(record.id as string)
+											}
+										>
+											<Trash size={16} />
+										</button>
+									</Tooltip>
+								)}
+								{onShare && (
+									<Tooltip title="Share">
+										<button
+											className="icon-btn share"
+											onClick={() => onShare(record)}
+										>
+											<UserPlus size={16} />
+										</button>
+									</Tooltip>
+								)}
+							</div>
+						),
+					},
+				]
 			: []),
 	];
 
@@ -203,15 +209,17 @@ export default function Table<T extends { id?: number | string }>({
 						: OrderDirection.DESC;
 				// Use orderField from column config, not the dataIndex field
 				const orderField = (sorter.column as any)?.orderField;
-				console.log('Sort triggered:', { sorter, orderField, direction });
+				console.log('Sort triggered:', {
+					sorter,
+					orderField,
+					direction,
+				});
 				if (orderField) {
 					onSortChange(orderField, direction);
 				}
 			}
 		}
 	};
-
-
 
 	return (
 		<div className="table-wrapper">
@@ -231,11 +239,22 @@ export default function Table<T extends { id?: number | string }>({
 				)}
 				{(onCreateFolder || onCreateFile) && (
 					<div style={{ position: 'relative', zIndex: 100 }}>
-						<Button type="primary" onClick={() => setShowCreateMenu(!showCreateMenu)}>
+						<Button
+							type="primary"
+							onClick={() => setShowCreateMenu(!showCreateMenu)}
+						>
 							CREATE
 						</Button>
 						{showCreateMenu && (
-							<div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', zIndex: 1000 }}>
+							<div
+								style={{
+									position: 'absolute',
+									top: '100%',
+									right: 0,
+									marginTop: '4px',
+									zIndex: 1000,
+								}}
+							>
 								<CreateMenu
 									onClose={() => setShowCreateMenu(false)}
 									onCreateFolder={() => {
@@ -253,25 +272,14 @@ export default function Table<T extends { id?: number | string }>({
 				)}
 			</div>
 
-			{/* Ant Design Table */}
-			<div style={{ position: 'relative' }}>
+			{/* Table Content with Scroll */}
+			<div className="table-content">
 				<AntTable<T>
 					columns={antColumns}
 					dataSource={data}
 					rowKey={(record) => record.id as string | number}
 					loading={loading}
-					pagination={
-						pagination
-							? {
-								current: pagination.page,
-								pageSize: pagination.itemsPerPage,
-								total: pagination.totalItems,
-								showSizeChanger: false,
-								showTotal: (total, range) =>
-									`${range[0]}-${range[1]} / ${total}`,
-							}
-							: false
-					}
+					pagination={false}
 					onChange={handleTableChange}
 					onRow={(record) => ({
 						onClick: () => onRowClick?.(record),
@@ -279,6 +287,22 @@ export default function Table<T extends { id?: number | string }>({
 					})}
 				/>
 			</div>
+
+			{/* Pagination */}
+			{pagination && (
+				<div className="ant-pagination">
+					<AntPagination
+						current={pagination.page}
+						pageSize={pagination.itemsPerPage}
+						total={pagination.totalItems}
+						onChange={onPageChange}
+						showSizeChanger={false}
+						showTotal={(total: number, range: number[]) =>
+							`${range[0]}-${range[1]} / ${total}`
+						}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }
