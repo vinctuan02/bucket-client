@@ -1,6 +1,7 @@
 'use client';
 
 import { FileNode } from '@/modules/home/home.entity';
+import { useUpload } from '@/modules/home/contexts/upload.context';
 import { message } from 'antd';
 import { Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -11,16 +12,6 @@ interface FileNodeModalProps {
 	initialData?: Partial<FileNode>;
 	onClose: () => void;
 	onSave: (data: any, onProgress?: (progress: number) => void) => void;
-	onUploadProgress?: (progress: UploadProgress | null) => void;
-}
-
-interface UploadProgress {
-	fileName: string;
-	progress: number;
-	status: 'uploading' | 'completed' | 'error';
-	speed?: string; // Upload speed (e.g., "2.5 MB/s")
-	uploadedSize?: string; // Uploaded size (e.g., "5 MB")
-	totalSize?: string; // Total size (e.g., "10 MB")
 }
 
 export default function FileNodeModal({
@@ -28,14 +19,12 @@ export default function FileNodeModal({
 	initialData,
 	onClose,
 	onSave,
-	onUploadProgress,
 }: FileNodeModalProps) {
+	const { addUpload, updateUpload, removeUpload } = useUpload();
 	const [name, setName] = useState(initialData?.name ?? '');
 	const [file, setFile] = useState<File | null>(null);
-	const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
-		null,
-	);
 	const [isUploading, setIsUploading] = useState(false);
+	const uploadId = `upload-${Date.now()}-${Math.random()}`;
 
 	useEffect(() => {
 		if (initialData?.name) setName(initialData.name);
@@ -74,6 +63,7 @@ export default function FileNodeModal({
 		const startTime = Date.now();
 
 		const initialProgress = {
+			id: uploadId,
 			fileName: name,
 			progress: 0,
 			status: 'uploading' as const,
@@ -81,8 +71,7 @@ export default function FileNodeModal({
 			totalSize: totalSize,
 			speed: '0 B/s',
 		};
-		setUploadProgress(initialProgress);
-		onUploadProgress?.(initialProgress);
+		addUpload(initialProgress);
 
 		try {
 			// Callback to track real upload progress
@@ -91,16 +80,11 @@ export default function FileNodeModal({
 				const progress = (uploadedBytes / fileSize) * 100;
 				const speed = uploadedBytes / elapsedSeconds;
 
-				const updated = {
-					fileName: name,
-					progress: Math.min(progress, 99), // Cap at 99% until completion
-					status: 'uploading' as const,
+				updateUpload(uploadId, {
+					progress: Math.min(progress, 99),
 					uploadedSize: formatFileSize(uploadedBytes),
-					totalSize: formatFileSize(fileSize),
 					speed: formatFileSize(speed) + '/s',
-				};
-				setUploadProgress(updated);
-				onUploadProgress?.(updated);
+				});
 			};
 
 			await onSave(
@@ -113,33 +97,26 @@ export default function FileNodeModal({
 			);
 
 			// Update progress to completed
-			const completedProgress = {
-				fileName: name,
+			updateUpload(uploadId, {
 				progress: 100,
-				status: 'completed' as const,
+				status: 'completed',
 				uploadedSize: totalSize,
-				totalSize: totalSize,
 				speed:
 					formatFileSize(
 						fileSize / ((Date.now() - startTime) / 1000),
 					) + '/s',
-			};
-			setUploadProgress(completedProgress);
-			onUploadProgress?.(completedProgress);
+			});
 
-			// Auto close progress modal after 2 seconds
+			// Auto remove after 2 seconds
 			setTimeout(() => {
-				setUploadProgress(null);
-				onUploadProgress?.(null);
+				removeUpload(uploadId);
 				setIsUploading(false);
 			}, 2000);
 		} catch (error) {
-			setUploadProgress({
-				fileName: name,
+			updateUpload(uploadId, {
 				progress: 0,
 				status: 'error',
 				uploadedSize: '0 B',
-				totalSize: totalSize,
 			});
 			setIsUploading(false);
 		}
@@ -270,65 +247,6 @@ export default function FileNodeModal({
 					</button>
 				</div>
 			</div>
-
-			{/* Upload Progress Modal */}
-			{uploadProgress && (
-				<div className="upload-progress-overlay">
-					<div className="upload-progress-modal">
-						<div className="upload-progress-header">
-							<h3>Upload Progress</h3>
-						</div>
-						<div className="upload-progress-content">
-							<div className="upload-item">
-								<div className="upload-info">
-									<span className="upload-filename">
-										{uploadProgress.fileName}
-									</span>
-									<span className="upload-percent">
-										{Math.round(uploadProgress.progress)}%
-									</span>
-								</div>
-								<div className="upload-bar">
-									<div
-										className={`upload-fill ${uploadProgress.status}`}
-										style={{
-											width: `${uploadProgress.progress}%`,
-										}}
-									/>
-								</div>
-								<div className="upload-details">
-									<div className="detail-row">
-										<span className="detail-label">
-											{uploadProgress.uploadedSize} /{' '}
-											{uploadProgress.totalSize}
-										</span>
-										<span className="detail-speed">
-											{uploadProgress.speed}
-										</span>
-									</div>
-								</div>
-								<div className="upload-status">
-									{uploadProgress.status === 'uploading' && (
-										<span className="status-uploading">
-											Uploading...
-										</span>
-									)}
-									{uploadProgress.status === 'completed' && (
-										<span className="status-completed">
-											✓ Completed
-										</span>
-									)}
-									{uploadProgress.status === 'error' && (
-										<span className="status-error">
-											✗ Error
-										</span>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

@@ -11,6 +11,8 @@ import { authApi } from '@/modules/auth/auth.api';
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
 import { useAuthRefresh } from '@/modules/commons/hooks/useAuthRefresh';
 import { useRouter } from 'next/navigation';
+import { UploadProvider } from '@/modules/home/contexts/upload.context';
+import GlobalUploadProgress from '@/modules/home/components/upload-progress-global.c';
 
 export default function RootLayout({
 	children,
@@ -59,19 +61,22 @@ export default function RootLayout({
 		<html lang="en">
 			<body className="root-layout">
 				<AntdRegistry>
-					<Sidebar />
-					<div className="layout-main">
-						<div
-							className={`layout-header ${headerVisible ? '' : 'hidden'}`}
-						>
-							<div className="header-wrapper">
-								<Header />
+					<UploadProvider>
+						<Sidebar />
+						<div className="layout-main">
+							<div
+								className={`layout-header ${headerVisible ? '' : 'hidden'}`}
+							>
+								<div className="header-wrapper">
+									<Header />
+								</div>
 							</div>
-						</div>
 
-						<div className="layout-header-space" />
-						<main className="layout-content">{children}</main>
-					</div>
+							<div className="layout-header-space" />
+							<main className="layout-content">{children}</main>
+						</div>
+						<GlobalUploadProgress />
+					</UploadProvider>
 				</AntdRegistry>
 			</body>
 		</html>

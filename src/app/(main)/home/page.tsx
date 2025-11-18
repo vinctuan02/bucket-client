@@ -16,9 +16,7 @@ import FilePreview from '@/modules/commons/components/common.c.read-file';
 import FileNodeShareModal from '@/modules/home/components/file-node-permission.c.modal';
 import Breadcrumbs from '@/modules/home/components/home.c.breadcrumbs';
 import FileNodeModal from '@/modules/home/components/home.c.modal';
-import UploadProgress, {
-	UploadProgressData,
-} from '@/modules/home/components/upload-progress.c';
+
 import { FileNodeFM } from '@/modules/home/home.enum';
 import { Button } from 'antd';
 import { Folder, LayoutGrid, List } from 'lucide-react';
@@ -47,8 +45,6 @@ export default function HomePage() {
 	);
 	const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
 	const [gridPageSize, setGridPageSize] = useState(20); // Default grid page size
-	const [uploadProgress, setUploadProgress] =
-		useState<UploadProgressData | null>(null);
 
 	// Calculate grid page size based on viewport
 	useEffect(() => {
@@ -264,7 +260,7 @@ export default function HomePage() {
 					throw new Error('No upload URL received from server');
 
 				// Use XMLHttpRequest to track upload progress
-				await new Promise((resolve, reject) => {
+				await new Promise<void>((resolve, reject) => {
 					const xhr = new XMLHttpRequest();
 
 					xhr.upload.addEventListener('progress', (e) => {
@@ -275,7 +271,7 @@ export default function HomePage() {
 
 					xhr.addEventListener('load', () => {
 						if (xhr.status === 200) {
-							resolve(undefined);
+							resolve();
 						} else {
 							reject(
 								new Error(
@@ -299,7 +295,7 @@ export default function HomePage() {
 			setShowModal(false);
 			setEditingFolder({});
 			setModalType(null);
-		} catch (error) {}
+		} catch (error) { }
 	};
 
 	const handleRowClick = (row: FileNode) => {
@@ -507,12 +503,8 @@ export default function HomePage() {
 							setModalType(null);
 						}}
 						onSave={handleSave}
-						onUploadProgress={setUploadProgress}
 					/>
 				)}
-
-				{/* Upload Progress Modal */}
-				<UploadProgress data={uploadProgress} />
 
 				{previewId && (
 					<FilePreview
