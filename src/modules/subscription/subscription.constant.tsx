@@ -16,6 +16,15 @@ export const createPlansConfigColumnTable = (
 			label: 'Storage Limit (GB)',
 			orderField: PlanFieldMapping.STORAGE_LIMIT,
 			width: 12,
+			render: (value: number) => {
+				if (!value) return '0 GB';
+				// Nếu value là bytes, convert sang GB
+				if (value > 1024) {
+					return `${(value / (1024 ** 3)).toFixed(2)} GB`;
+				}
+				// Nếu value đã là GB
+				return `${value} GB`;
+			},
 		},
 		{
 			field: 'price',

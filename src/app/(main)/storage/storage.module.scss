@@ -31,14 +31,14 @@
 		margin-right: 0;
 		display: flex;
 		gap: 2rem;
-		align-items: flex-start;
+		align-items: center;
 
 		.storageIcon {
 			flex-shrink: 0;
 
 			svg {
-				width: 64px;
-				height: 64px;
+				width: 128px;
+				height: 128px;
 				color: #2563eb;
 			}
 		}
@@ -130,49 +130,98 @@
 
 		h3 {
 			font-size: 1.25rem;
-			// font-weight: 600;
-			// color: #111827;
 			margin-bottom: 1.5rem;
 		}
 
-		.breakdownItem {
+		.breakdownBar {
+			width: 100%;
+			height: 12px;
+			background-color: #e5e7eb;
+			border-radius: 6px;
+			overflow: hidden;
+			display: flex;
 			margin-bottom: 1.5rem;
 
-			&:last-child {
-				margin-bottom: 0;
+			.baseStorageFill {
+				height: 100%;
+				background-color: #2563eb;
+				transition: width 0.3s ease;
 			}
 
-			.breakdownLabel {
+			.bonusStorageFill {
+				height: 100%;
+				background-color: #10b981;
+				transition: width 0.3s ease;
+			}
+		}
+
+		.breakdownLegend {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 1rem;
+
+			.legendItem {
 				display: flex;
-				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 0.5rem;
+				gap: 0.75rem;
+				font-size: 0.875rem;
 
-				.label {
-					font-size: 0.875rem;
-					color: #6b7280;
-					font-weight: 500;
+				.legendColor {
+					width: 12px;
+					height: 12px;
+					border-radius: 2px;
+					flex-shrink: 0;
 				}
 
-				.value {
-					font-size: 0.875rem;
-					// color: #111827;
-					// font-weight: 600;
+				.legendLabel {
+					color: #6b7280;
+					// flex: 1;
+				}
+
+				.legendValue {
+					color: #111827;
+					font-weight: 600;
 				}
 			}
+		}
+	}
 
-			.breakdownBar {
-				width: 100%;
-				height: 8px;
-				background-color: #e5e7eb;
-				border-radius: 4px;
-				overflow: hidden;
+	.plansSection {
+		background: #ffffff;
+		border: none;
+		border-radius: 0;
+		padding: 2rem 20px;
+		margin-left: 0;
+		margin-right: 0;
+		margin-top: 2rem;
 
-				.breakdownFill {
-					height: 100%;
-					border-radius: 4px;
-					transition: width 0.3s ease;
-				}
+		.plansHeader {
+			margin-bottom: 2rem;
+		}
+
+		.plansTitle {
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: #111827;
+			margin-bottom: 0.5rem;
+		}
+
+		.plansSubtitle {
+			font-size: 0.875rem;
+			color: #6b7280;
+		}
+
+		.plansGrid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 2rem;
+
+			.loading,
+			.noPlans {
+				grid-column: 1 / -1;
+				text-align: center;
+				padding: 2rem;
+				color: #6b7280;
 			}
 		}
 	}
@@ -189,6 +238,12 @@
 				.storageDetails {
 					grid-template-columns: 1fr;
 				}
+			}
+		}
+
+		.plansSection {
+			.plansGrid {
+				grid-template-columns: 1fr;
 			}
 		}
 	}

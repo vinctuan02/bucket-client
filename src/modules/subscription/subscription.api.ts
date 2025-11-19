@@ -29,6 +29,11 @@ export const subscriptionApi = {
 		await api.get<ResponseSuccess<SubscriptionResponseDto>>(
 			`${SUBSCRIPTION_BASE_URL}/active`,
 		),
+
+	getStoragePlans: async () =>
+		await api.get<ResponseSuccess<PlanResponseDto[]>>(
+			`${SUBSCRIPTION_BASE_URL}/storage/plans`,
+		),
 };
 
 export const planApi = {
