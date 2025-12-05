@@ -2,6 +2,10 @@
 
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
 import {
+	PermissionAction,
+	Resource,
+} from '@/modules/permissions/permisson.enum';
+import {
 	CircleUserRound,
 	CreditCard,
 	Folder,
@@ -14,16 +18,21 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './c.sidebar.scss';
 import StorageDisplay from './c.storage-display';
+
+export interface RequiredPermission {
+	action: PermissionAction;
+	resource: Resource;
+}
 
 interface SidebarItem {
 	display: string;
 	icon: React.ReactNode;
 	to: string;
 	section: string;
-	requiredRoles?: string[];
+	requiredPermission?: RequiredPermission;
 }
 
 const sidebarNavItems: SidebarItem[] = [
@@ -32,70 +41,88 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <Folder size={18} strokeWidth={2.5} />,
 		to: '/home',
 		section: 'home',
-		requiredRoles: ['Admin', 'User', 'Sale'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.FILE_NODE,
+		},
 	},
 	{
 		display: 'Users',
 		icon: <Users size={18} strokeWidth={2.5} />,
 		to: '/users',
 		section: 'users',
-		requiredRoles: ['Admin'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.USER,
+		},
 	},
 	{
 		display: 'Roles',
 		icon: <Shield size={18} strokeWidth={2.5} />,
 		to: '/roles',
 		section: 'roles',
-		requiredRoles: ['Admin'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.ROLE,
+		},
 	},
 	{
 		display: 'Permissions',
 		icon: <KeyRound size={18} strokeWidth={2.5} />,
 		to: '/permissions',
 		section: 'permissions',
-		requiredRoles: ['Admin'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.PERMISSION,
+		},
 	},
 	{
 		display: 'App Config',
 		icon: <Settings size={18} strokeWidth={2.5} />,
 		to: '/app-config',
 		section: 'app-config',
-		requiredRoles: ['Admin'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.APP_CONFIG,
+		},
 	},
 	{
 		display: 'Profile',
 		icon: <CircleUserRound size={18} strokeWidth={2.5} />,
 		to: '/my-profile',
 		section: 'my-profile',
-		requiredRoles: ['Admin', 'User', 'Sale'],
 	},
 	{
 		display: 'Plans',
 		icon: <CreditCard size={18} strokeWidth={2.5} />,
 		to: '/plans',
 		section: 'plans',
-		requiredRoles: ['Admin', 'Sale'],
 	},
 	{
 		display: 'Shared With Me',
 		icon: <Share2 size={18} strokeWidth={2.5} />,
 		to: '/share-with-me',
 		section: 'share-with-me',
-		requiredRoles: ['Admin', 'User', 'Sale'],
 	},
 	{
 		display: 'Storage',
 		icon: <CreditCard size={18} strokeWidth={2.5} />,
 		to: '/storage',
 		section: 'storage',
-		requiredRoles: ['Admin', 'User'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.STORAGE,
+		},
 	},
 	{
 		display: 'Trash',
 		icon: <Trash2 size={18} strokeWidth={2.5} />,
 		to: '/trash',
 		section: 'trash',
-		requiredRoles: ['Admin', 'User'],
+		requiredPermission: {
+			action: PermissionAction.READ,
+			resource: Resource.TRASH,
+		},
 	},
 ];
 
@@ -106,28 +133,33 @@ export default function Sidebar() {
 	const sidebarRef = useRef<HTMLDivElement>(null);
 	const indicatorRef = useRef<HTMLDivElement>(null);
 	const pathname = usePathname();
-	const { user } = useAuthStore();
+	const { user, hasPermission } = useAuthStore();
 
-	useEffect(() => {
-		// Filter sidebar items based on user roles
+	const filterItems = useCallback(() => {
 		if (!user) {
 			setVisibleItems([]);
 			return;
 		}
 
-		const userRoles =
-			(user.userRoles
-				?.map((ur) => ur.role?.name)
-				.filter(Boolean) as string[]) || [];
 		const filtered = sidebarNavItems.filter((item) => {
-			if (!item.requiredRoles || item.requiredRoles.length === 0) {
+			// If no permission required, show the item
+			if (!item.requiredPermission) {
 				return true;
 			}
-			return userRoles.some((role) => item.requiredRoles?.includes(role));
+
+			// Check if user has the required permission
+			return hasPermission(
+				item.requiredPermission.action,
+				item.requiredPermission.resource,
+			);
 		});
 
 		setVisibleItems(filtered);
-	}, [user]);
+	}, [user, hasPermission]);
+
+	useEffect(() => {
+		filterItems();
+	}, [filterItems]);
 
 	useEffect(() => {
 		// set chiều cao cho indicator
