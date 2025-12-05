@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './c.sidebar.scss';
 import StorageDisplay from './c.storage-display';
 
@@ -135,7 +135,8 @@ export default function Sidebar() {
 	const pathname = usePathname();
 	const { user, hasPermission } = useAuthStore();
 
-	const filterItems = useCallback(() => {
+	useEffect(() => {
+		// Filter sidebar items based on user permissions
 		if (!user) {
 			setVisibleItems([]);
 			return;
@@ -155,11 +156,7 @@ export default function Sidebar() {
 		});
 
 		setVisibleItems(filtered);
-	}, [user, hasPermission]);
-
-	useEffect(() => {
-		filterItems();
-	}, [filterItems]);
+	}, [user]);
 
 	useEffect(() => {
 		// set chiều cao cho indicator

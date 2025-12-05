@@ -81,7 +81,13 @@ export const authApi = {
 
 	// return user with role, permissions
 	meDetails: async () => {
-		const res = await api.get<ResponseSuccess<User>>('/auth/me/detail');
-		return res.data;
+		try {
+			const res = await api.get<ResponseSuccess<User>>('/auth/me/detail');
+			return res.data;
+		} catch (error) {
+			// Fallback to /auth/me if /auth/me/detail is not available
+			const res = await api.get<ResponseSuccess<User>>('/auth/me');
+			return res.data;
+		}
 	},
 };
