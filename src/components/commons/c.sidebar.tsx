@@ -1,10 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
-import {
-	PermissionAction,
-	Resource,
-} from '@/modules/permissions/permisson.enum';
+import { APP_PERMISSIONS } from '@/modules/permissions/permission.constant';
 import {
 	CircleUserRound,
 	CreditCard,
@@ -22,17 +19,15 @@ import { useEffect, useRef, useState } from 'react';
 import './c.sidebar.scss';
 import StorageDisplay from './c.storage-display';
 
-export interface RequiredPermission {
-	action: PermissionAction;
-	resource: Resource;
-}
-
 interface SidebarItem {
 	display: string;
 	icon: React.ReactNode;
 	to: string;
 	section: string;
-	requiredPermission?: RequiredPermission;
+	requiredPermission?: {
+		action: string;
+		resource: string;
+	};
 }
 
 const sidebarNavItems: SidebarItem[] = [
@@ -41,50 +36,35 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <Folder size={18} strokeWidth={2.5} />,
 		to: '/home',
 		section: 'home',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.FILE_NODE,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
 	},
 	{
 		display: 'Users',
 		icon: <Users size={18} strokeWidth={2.5} />,
 		to: '/users',
 		section: 'users',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.USER,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_USER,
 	},
 	{
 		display: 'Roles',
 		icon: <Shield size={18} strokeWidth={2.5} />,
 		to: '/roles',
 		section: 'roles',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.ROLE,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_ROLE,
 	},
 	{
 		display: 'Permissions',
 		icon: <KeyRound size={18} strokeWidth={2.5} />,
 		to: '/permissions',
 		section: 'permissions',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.PERMISSION,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_PERMISSION,
 	},
 	{
 		display: 'App Config',
 		icon: <Settings size={18} strokeWidth={2.5} />,
 		to: '/app-config',
 		section: 'app-config',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.APP_CONFIG,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_CONFIG,
 	},
 	{
 		display: 'Profile',
@@ -109,20 +89,14 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <CreditCard size={18} strokeWidth={2.5} />,
 		to: '/storage',
 		section: 'storage',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.STORAGE,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_STORAGE,
 	},
 	{
 		display: 'Trash',
 		icon: <Trash2 size={18} strokeWidth={2.5} />,
 		to: '/trash',
 		section: 'trash',
-		requiredPermission: {
-			action: PermissionAction.READ,
-			resource: Resource.TRASH,
-		},
+		requiredPermission: APP_PERMISSIONS.READ_TRASH,
 	},
 ];
 

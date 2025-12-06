@@ -24,6 +24,7 @@ export default function RootLayout({
 	const [lastScrollY, setLastScrollY] = useState(0);
 	const router = useRouter();
 	const setUser = useAuthStore((s) => s.setUser);
+	const setIsLoading = useAuthStore((s) => s.setIsLoading);
 
 	useAuthRefresh();
 
@@ -44,19 +45,35 @@ export default function RootLayout({
 	useEffect(() => {
 		const token = localStorage.getItem('access_token');
 		if (!token) {
+			setIsLoading(false);
 			router.replace('/login');
+			return;
 		}
 
 		(async () => {
 			try {
 				const res = await authApi.meDetails();
-				setUser(res.data!);
-			} catch {
+				console.log('Layout meDetails response:', res);
+				console.log('Layout res.data:', res?.data);
+
+				// res is ResponseSuccess object with data field
+				if (res?.data) {
+					console.log('Setting user:', res.data);
+					setUser(res.data);
+				} else {
+					console.error('No user data returned from server:', res);
+					localStorage.removeItem('access_token');
+					router.replace('/login');
+				}
+			} catch (error) {
+				console.error('Failed to fetch user details:', error);
 				localStorage.removeItem('access_token');
 				router.replace('/login');
+			} finally {
+				setIsLoading(false);
 			}
 		})();
-	}, [router, setUser]);
+	}, [router, setUser, setIsLoading]);
 
 	return (
 		<html lang="en">

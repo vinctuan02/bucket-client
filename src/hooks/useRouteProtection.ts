@@ -18,12 +18,17 @@ import { useEffect } from 'react';
 export function useRouteProtection() {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { user, canAccessRoute } = useAuthStore();
+	const { user, isLoading, canAccessRoute } = useAuthStore();
 
 	useEffect(() => {
 		// Skip protection for public routes
 		const publicRoutes = ['/login', '/register', '/forgot-password'];
 		if (publicRoutes.includes(pathname)) {
+			return;
+		}
+
+		// Skip if still loading user data
+		if (isLoading) {
 			return;
 		}
 
@@ -70,5 +75,5 @@ export function useRouteProtection() {
 			);
 			router.push(redirectPath);
 		}
-	}, [pathname, user, canAccessRoute, router]);
+	}, [pathname, user, isLoading, canAccessRoute, router]);
 }

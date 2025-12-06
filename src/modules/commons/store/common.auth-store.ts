@@ -8,7 +8,9 @@ import { persist } from 'zustand/middleware';
 
 interface AuthState {
 	user: User | null;
+	isLoading: boolean;
 	setUser: (u: User) => void;
+	setIsLoading: (loading: boolean) => void;
 	hasPermission: (action: string, resource: string) => boolean;
 	hasRole: (roleName: string) => boolean;
 	canAccessRoute: (path: string) => boolean;
@@ -20,7 +22,9 @@ export const useAuthStore = create<AuthState>()(
 	persist(
 		(set, get) => ({
 			user: null,
+			isLoading: true,
 			setUser: (u) => set({ user: u }),
+			setIsLoading: (loading) => set({ isLoading: loading }),
 
 			hasPermission: (action, resource) => {
 				const user = get().user;

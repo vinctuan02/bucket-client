@@ -83,11 +83,22 @@ export const authApi = {
 	meDetails: async () => {
 		try {
 			const res = await api.get<ResponseSuccess<User>>('/auth/me/detail');
+			console.log('meDetails response:', res);
+			console.log('meDetails res.data:', res.data);
+			// res.data is ResponseSuccess object, need to get the data field
 			return res.data;
 		} catch (error) {
-			// Fallback to /auth/me if /auth/me/detail is not available
-			const res = await api.get<ResponseSuccess<User>>('/auth/me');
-			return res.data;
+			console.error('meDetails error:', error);
+			try {
+				// Fallback to /auth/me if /auth/me/detail is not available
+				const res = await api.get<ResponseSuccess<User>>('/auth/me');
+				console.log('me fallback response:', res);
+				console.log('me fallback res.data:', res.data);
+				return res.data;
+			} catch (fallbackError) {
+				console.error('Failed to fetch user details:', fallbackError);
+				throw fallbackError;
+			}
 		}
 	},
 };
