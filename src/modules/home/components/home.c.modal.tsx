@@ -1,7 +1,8 @@
 'use client';
 
-import { FileNode } from '@/modules/home/home.entity';
+import Portal from '@/components/commons/portal';
 import { useUpload } from '@/modules/home/contexts/upload.context';
+import { FileNode } from '@/modules/home/home.entity';
 import { message } from 'antd';
 import { Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -127,126 +128,141 @@ export default function FileNodeModal({
 	};
 
 	return (
-		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div className="modal">
-				<h2 className="modal__title">
-					{initialData?.id ? 'Edit' : 'Create New'}{' '}
-					{type === 'folder' ? 'Folder' : 'File'}
-				</h2>
+		<Portal>
+			<div className="modal-overlay" onClick={handleOverlayClick}>
+				<div className="modal">
+					<h2 className="modal__title">
+						{initialData?.id ? 'Edit' : 'Create New'}{' '}
+						{type === 'folder' ? 'Folder' : 'File'}
+					</h2>
 
-				<div className="form-row">
-					<div className="form-group full">
-						<label>Name</label>
-						<input
-							type="text"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							placeholder={`Enter ${type} name`}
-						/>
-					</div>
+					<div className="form-row">
+						<div className="form-group full">
+							<label>Name</label>
+							<input
+								type="text"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								placeholder={`Enter ${type} name`}
+							/>
+						</div>
 
-					{type === 'file' && (
-						<>
-							<div className="form-group full">
-								<label>Upload File</label>
-								{file ? (
-									<div className="file-preview-u">
-										<span className="file-name">
-											{file.name}
-										</span>
-										<button
-											className="file-remove"
-											onClick={() => {
-												setFile(null);
-												setName('');
-											}}
-										>
-											<X size={16} />
-										</button>
-									</div>
-								) : (
-									<label className="upload-box">
-										<Upload size={18} />
-										<span>Click to choose file</span>
-										<input
-											type="file"
-											onChange={handleFileChange}
-										/>
-									</label>
-								)}
-							</div>
-
-							{file && (
+						{type === 'file' && (
+							<>
 								<div className="form-group full">
-									<label>Preview</label>
-									<div className="file-preview-container">
-										{file.type.startsWith('image/') && (
-											<img
-												src={URL.createObjectURL(file)}
-												alt="preview"
-												className="preview-image"
-											/>
-										)}
-										{file.type.startsWith('video/') && (
-											<video
-												controls
-												className="preview-video"
+									<label>Upload File</label>
+									{file ? (
+										<div className="file-preview-u">
+											<span className="file-name">
+												{file.name}
+											</span>
+											<button
+												className="file-remove"
+												onClick={() => {
+													setFile(null);
+													setName('');
+												}}
 											>
-												<source
+												<X size={16} />
+											</button>
+										</div>
+									) : (
+										<label className="upload-box">
+											<Upload size={18} />
+											<span>Click to choose file</span>
+											<input
+												type="file"
+												onChange={handleFileChange}
+											/>
+										</label>
+									)}
+								</div>
+
+								{file && (
+									<div className="form-group full">
+										<label>Preview</label>
+										<div className="file-preview-container">
+											{file.type.startsWith('image/') && (
+												<img
 													src={URL.createObjectURL(
 														file,
 													)}
-													type={file.type}
+													alt="preview"
+													className="preview-image"
 												/>
-											</video>
-										)}
-										{file.type === 'application/pdf' && (
-											<iframe
-												src={URL.createObjectURL(file)}
-												className="preview-pdf"
-											/>
-										)}
-										{file.type.startsWith('text/') && (
-											<iframe
-												src={URL.createObjectURL(file)}
-												className="preview-text"
-											/>
-										)}
-										{!file.type.startsWith('image/') &&
-											!file.type.startsWith('video/') &&
-											file.type !== 'application/pdf' &&
-											!file.type.startsWith('text/') && (
-												<div className="preview-unavailable">
-													<p>
-														Preview not available
-														for this file type
-													</p>
-												</div>
 											)}
+											{file.type.startsWith('video/') && (
+												<video
+													controls
+													className="preview-video"
+												>
+													<source
+														src={URL.createObjectURL(
+															file,
+														)}
+														type={file.type}
+													/>
+												</video>
+											)}
+											{file.type ===
+												'application/pdf' && (
+												<iframe
+													src={URL.createObjectURL(
+														file,
+													)}
+													className="preview-pdf"
+												/>
+											)}
+											{file.type.startsWith('text/') && (
+												<iframe
+													src={URL.createObjectURL(
+														file,
+													)}
+													className="preview-text"
+												/>
+											)}
+											{!file.type.startsWith('image/') &&
+												!file.type.startsWith(
+													'video/',
+												) &&
+												file.type !==
+													'application/pdf' &&
+												!file.type.startsWith(
+													'text/',
+												) && (
+													<div className="preview-unavailable">
+														<p>
+															Preview not
+															available for this
+															file type
+														</p>
+													</div>
+												)}
+										</div>
 									</div>
-								</div>
-							)}
-						</>
-					)}
-				</div>
+								)}
+							</>
+						)}
+					</div>
 
-				<div className="modal__actions">
-					<button
-						className="btn btn-cancel"
-						onClick={onClose}
-						disabled={isUploading}
-					>
-						Cancel
-					</button>
-					<button
-						className="btn btn-blue"
-						onClick={handleSubmit}
-						disabled={isUploading}
-					>
-						{isUploading ? 'Uploading...' : 'Save'}
-					</button>
+					<div className="modal__actions">
+						<button
+							className="btn btn-cancel"
+							onClick={onClose}
+							disabled={isUploading}
+						>
+							Cancel
+						</button>
+						<button
+							className="btn btn-blue"
+							onClick={handleSubmit}
+							disabled={isUploading}
+						>
+							{isUploading ? 'Uploading...' : 'Save'}
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
+		</Portal>
 	);
 }

@@ -1,12 +1,13 @@
 'use client';
 
 import { permissionDefault } from '@/modules/permissions/permission.constant';
+import { Permission } from '@/modules/permissions/permission.entity';
 import { PermissionAction } from '@/modules/permissions/permisson.enum';
+import { message } from 'antd';
 import { useEffect, useState } from 'react';
+import Portal from '../commons/portal';
 import './modal.permission.scss';
 import './modal.scss';
-import { Permission } from '@/modules/permissions/permission.entity';
-import { message } from 'antd';
 
 interface PermissionModalProps {
 	onClose: () => void;
@@ -60,79 +61,87 @@ export default function PermissionModal({
 	};
 
 	return (
-		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div className="modal">
-				<h2 className="modal__title">
-					{initialData?.id ? 'Edit Permission' : 'Create Permission'}
-				</h2>
+		<Portal>
+			<div className="modal-overlay" onClick={handleOverlayClick}>
+				<div className="modal">
+					<h2 className="modal__title">
+						{initialData?.id
+							? 'Edit Permission'
+							: 'Create Permission'}
+					</h2>
 
-				<div className="form-row">
-					<div className="form-group">
-						<label>Name</label>
-						<input
-							name="name"
-							type="text"
-							value={form.name}
-							onChange={handleChange}
-							placeholder="Enter permission name"
-						/>
+					<div className="form-row">
+						<div className="form-group">
+							<label>Name</label>
+							<input
+								name="name"
+								type="text"
+								value={form.name}
+								onChange={handleChange}
+								placeholder="Enter permission name"
+							/>
+						</div>
+
+						<div className="form-group">
+							<label>Resource</label>
+							<input
+								name="resource"
+								type="text"
+								value={form.resource}
+								onChange={handleChange}
+								placeholder="e.g. user, role, order..."
+							/>
+						</div>
 					</div>
 
-					<div className="form-group">
-						<label>Resource</label>
-						<input
-							name="resource"
-							type="text"
-							value={form.resource}
-							onChange={handleChange}
-							placeholder="e.g. user, role, order..."
-						/>
-					</div>
-				</div>
+					<div className="form-row">
+						<div className="form-group">
+							<label>Action</label>
+							<select
+								name="action"
+								value={form.action}
+								onChange={handleChange}
+							>
+								<option value="">Select action</option>
+								{Object.values(PermissionAction).map(
+									(action) => (
+										<option key={action} value={action}>
+											{action.charAt(0).toUpperCase() +
+												action.slice(1)}
+										</option>
+									),
+								)}
+							</select>
+						</div>
 
-				<div className="form-row">
-					<div className="form-group">
-						<label>Action</label>
-						<select
-							name="action"
-							value={form.action}
-							onChange={handleChange}
+						<div className="form-group">
+							<label>Description</label>
+							<input
+								name="description"
+								type="text"
+								value={form.description}
+								onChange={handleChange}
+								placeholder="Enter description (optional)"
+							/>
+						</div>
+					</div>
+
+					<div className="modal__actions">
+						<button className="btn btn-cancel" onClick={onClose}>
+							Cancel
+						</button>
+						<button
+							className="btn btn-blue"
+							onClick={handleSubmit}
+							disabled={
+								!form.name || !form.action || !form.resource
+							}
 						>
-							<option value="">Select action</option>
-							{Object.values(PermissionAction).map((action) => (
-								<option key={action} value={action}>
-									{action.charAt(0).toUpperCase() +
-										action.slice(1)}
-								</option>
-							))}
-						</select>
+							Save
+						</button>
 					</div>
-
-					<div className="form-group">
-						<label>Description</label>
-						<input
-							name="description"
-							type="text"
-							value={form.description}
-							onChange={handleChange}
-							placeholder="Enter description (optional)"
-						/>
-					</div>
-				</div>
-
-				<div className="modal__actions">
-					<button className="btn btn-cancel" onClick={onClose}>
-						Cancel
-					</button>
-					<button
-						className="btn btn-blue"
-						onClick={handleSubmit}
-						disabled={!form.name || !form.action || !form.resource}
-					>
-						Save
-					</button>
 				</div>
 			</div>
-		</div>
+		</Portal>
 	);
 }

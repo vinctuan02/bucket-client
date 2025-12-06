@@ -1,5 +1,6 @@
 'use client';
 
+import Portal from '@/components/commons/portal';
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
 import { rolesApi } from '@/modules/roles/role.api';
 import { rolesConifgsColumnTable } from '@/modules/roles/role.constant';
@@ -153,76 +154,78 @@ export default function UserModal({
 	};
 
 	return (
-		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div className="modal">
-				<h2 className="modal__title">
-					{initialData?.id ? 'Edit User' : 'Create User'}
-				</h2>
+		<Portal>
+			<div className="modal-overlay" onClick={handleOverlayClick}>
+				<div className="modal">
+					<h2 className="modal__title">
+						{initialData?.id ? 'Edit User' : 'Create User'}
+					</h2>
 
-				<div className="form-row">
-					<div className="form-group">
-						<label>Name</label>
-						<input
-							name="name"
-							type="text"
-							value={form.name ?? ''}
-							onChange={handleChange}
-							placeholder="Enter name"
-						/>
+					<div className="form-row">
+						<div className="form-group">
+							<label>Name</label>
+							<input
+								name="name"
+								type="text"
+								value={form.name ?? ''}
+								onChange={handleChange}
+								placeholder="Enter name"
+							/>
+						</div>
+
+						<div className="form-group">
+							<label>Email</label>
+							<input
+								name="email"
+								type="email"
+								value={form.email ?? ''}
+								onChange={handleChange}
+								placeholder="Enter email"
+							/>
+						</div>
+
+						<div className="form-group">
+							<label>
+								{initialData?.id
+									? 'Change Password (optional)'
+									: 'Password'}
+							</label>
+							<input
+								name="password"
+								type="password"
+								value={form.password ?? ''}
+								onChange={handleChange}
+								placeholder={
+									initialData?.id
+										? 'Enter new password'
+										: 'Enter password'
+								}
+							/>
+						</div>
 					</div>
 
-					<div className="form-group">
-						<label>Email</label>
-						<input
-							name="email"
-							type="email"
-							value={form.email ?? ''}
-							onChange={handleChange}
-							placeholder="Enter email"
+					<Page title="Roles" isShowTitle={true}>
+						<TableSelect
+							data={roles}
+							columns={rolesConifgsColumnTable}
+							selectedKeys={selectedRoleIds}
+							onSelectChange={setSelectedRoleIds}
+							onSearch={handleSearch}
+							pagination={pagination}
+							onPageChange={handlePageChange}
 						/>
+					</Page>
+
+					<div className="modal__actions">
+						<button className="btn btn-cancel" onClick={onClose}>
+							Cancel
+						</button>
+						<button className="btn btn-blue" onClick={handleSubmit}>
+							Save
+						</button>
 					</div>
-
-					<div className="form-group">
-						<label>
-							{initialData?.id
-								? 'Change Password (optional)'
-								: 'Password'}
-						</label>
-						<input
-							name="password"
-							type="password"
-							value={form.password ?? ''}
-							onChange={handleChange}
-							placeholder={
-								initialData?.id
-									? 'Enter new password'
-									: 'Enter password'
-							}
-						/>
-					</div>
-				</div>
-
-				<Page title="Roles" isShowTitle={true}>
-					<TableSelect
-						data={roles}
-						columns={rolesConifgsColumnTable}
-						selectedKeys={selectedRoleIds}
-						onSelectChange={setSelectedRoleIds}
-						onSearch={handleSearch}
-						pagination={pagination}
-						onPageChange={handlePageChange}
-					/>
-				</Page>
-
-				<div className="modal__actions">
-					<button className="btn btn-cancel" onClick={onClose}>
-						Cancel
-					</button>
-					<button className="btn btn-blue" onClick={handleSubmit}>
-						Save
-					</button>
 				</div>
 			</div>
-		</div>
+		</Portal>
 	);
 }

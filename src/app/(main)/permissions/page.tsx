@@ -13,7 +13,12 @@ import {
 } from '@/modules/permissions/permission.constant';
 import { GetListPermissionDto } from '@/modules/permissions/permission.dto';
 import { Permission } from '@/modules/permissions/permission.entity';
-import { PermissionFieldMapping } from '@/modules/permissions/permisson.enum';
+import {
+	PermissionAction,
+	PermissionFieldMapping,
+	Resource,
+} from '@/modules/permissions/permisson.enum';
+import { Select } from 'antd';
 import { useEffect, useState } from 'react';
 
 export default function PermissionsPage() {
@@ -60,6 +65,8 @@ export default function PermissionsPage() {
 		permissionQuery.pageSize,
 		permissionQuery.orderBy,
 		permissionQuery.fieldOrder,
+		permissionQuery.permissionActions,
+		permissionQuery.resources,
 	]);
 
 	const handleSave = async (permission: {
@@ -123,8 +130,73 @@ export default function PermissionsPage() {
 		);
 	};
 
+	const handleActionChange = (values: PermissionAction[]) => {
+		setPermissionQuery(
+			(prev) =>
+				new GetListPermissionDto({
+					...prev,
+					permissionActions:
+						values.length > 0 ? values.join(',') : undefined,
+					page: 1,
+				}),
+		);
+	};
+
+	const handleResourceChange = (values: Resource[]) => {
+		setPermissionQuery(
+			(prev) =>
+				new GetListPermissionDto({
+					...prev,
+					resources: values.length > 0 ? values.join(',') : undefined,
+					page: 1,
+				}),
+		);
+	};
+
+	const actionOptions = Object.values(PermissionAction)
+		.filter((value) => typeof value === 'string')
+		.map((action) => ({
+			label: action as string,
+			value: action as PermissionAction,
+		}));
+
+	const resourceOptions = Object.values(Resource)
+		.filter((value) => typeof value === 'string')
+		.map((resource) => ({
+			label: resource as string,
+			value: resource as Resource,
+		}));
+
 	return (
 		<Page title="Permissions" isShowTitle={false}>
+			<div style={{ marginBottom: '16px', display: 'flex', gap: '16px' }}>
+				<Select
+					mode="multiple"
+					allowClear
+					style={{ width: '200px' }}
+					placeholder="Filter by Action"
+					value={
+						(permissionQuery.permissionActions
+							?.split(',')
+							.filter(Boolean) || []) as PermissionAction[]
+					}
+					onChange={handleActionChange}
+					options={actionOptions}
+				/>
+				<Select
+					mode="multiple"
+					allowClear
+					style={{ width: '200px' }}
+					placeholder="Filter by Resource"
+					value={
+						(permissionQuery.resources
+							?.split(',')
+							.filter(Boolean) || []) as Resource[]
+					}
+					onChange={handleResourceChange}
+					options={resourceOptions}
+				/>
+			</div>
 			<Table
 				data={permissions}
 				columns={permissionConfigsColumnTable}

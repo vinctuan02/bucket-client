@@ -1,15 +1,21 @@
 'use client';
 
 import { PAGINATION_DEFAULT } from '@/modules/commons/const/common.constant';
+import { OrderDirection } from '@/modules/commons/enum/common.enum';
 import { permissionApi } from '@/modules/permissions/permission.api';
 import { permissionConfigsColumnTable } from '@/modules/permissions/permission.constant';
 import { GetListPermissionDto } from '@/modules/permissions/permission.dto';
-import { PermissionFieldMapping } from '@/modules/permissions/permisson.enum';
+import {
+	PermissionAction,
+	PermissionFieldMapping,
+	Resource,
+} from '@/modules/permissions/permisson.enum';
 import { roleDefault } from '@/modules/roles/role.constant';
 import { RolePermission } from '@/modules/roles/role.dto';
 import { Role } from '@/modules/roles/role.entity';
-import { message } from 'antd';
+import { Select, message } from 'antd';
 import { useEffect, useState } from 'react';
+import Portal from '../commons/portal';
 import Page from '../pages/c.page';
 import TableSelect from '../table-selector/c.table-selector';
 import './modal.scss';
@@ -41,13 +47,26 @@ export default function RoleModal({
 		useState<GetListPermissionDto>(
 			new GetListPermissionDto({
 				fieldOrder: PermissionFieldMapping.NAME,
+				pageSize: 999,
 			}),
 		);
 
 	// ===== FETCH PERMISSIONS =====
 	const fetchPermissions = async (params?: GetListPermissionDto) => {
 		try {
-			const { data } = await permissionApi.getList(params);
+			const queryParams = {
+				...params,
+				permissionActions:
+					params?.permissionActions &&
+					params.permissionActions.length > 0
+						? params.permissionActions.join(',')
+						: undefined,
+				resources:
+					params?.resources && params.resources.length > 0
+						? params.resources.join(',')
+						: undefined,
+			};
+			const { data } = await permissionApi.getList(queryParams as any);
 			setPermissions(data?.items ?? []);
 
 			if (data?.metadata) {
@@ -75,6 +94,8 @@ export default function RoleModal({
 		permissionQuery.pageSize,
 		permissionQuery.orderBy,
 		permissionQuery.fieldOrder,
+		permissionQuery.permissionActions,
+		permissionQuery.resources,
 	]);
 
 	// ===== FORM & INITIAL DATA =====
@@ -98,7 +119,8 @@ export default function RoleModal({
 
 	const handleSearch = (value: string) => {
 		setPermissionQuery(
-			(prev) => new GetListPermissionDto({ ...prev, keywords: value }),
+			(prev) =>
+				new GetListPermissionDto({ ...prev, keywords: value, page: 1 }),
 		);
 	};
 
@@ -107,6 +129,54 @@ export default function RoleModal({
 			(prev) => new GetListPermissionDto({ ...prev, page }),
 		);
 	};
+
+	const handleActionFilterChange = (values: PermissionAction[]) => {
+		setPermissionQuery(
+			(prev) =>
+				new GetListPermissionDto({
+					...prev,
+					permissionActions: values.length > 0 ? values : undefined,
+					page: 1,
+				}),
+		);
+	};
+
+	const handleResourceFilterChange = (values: Resource[]) => {
+		setPermissionQuery(
+			(prev) =>
+				new GetListPermissionDto({
+					...prev,
+					resources: values.length > 0 ? values : undefined,
+					page: 1,
+				}),
+		);
+	};
+
+	const handleSortChange = (field: string, direction: OrderDirection) => {
+		setPermissionQuery(
+			(prev) =>
+				new GetListPermissionDto({
+					...prev,
+					fieldOrder: field,
+					orderBy: direction,
+					page: 1,
+				}),
+		);
+	};
+
+	const actionOptions = Object.values(PermissionAction)
+		.filter((value) => typeof value === 'string')
+		.map((action) => ({
+			label: action as string,
+			value: action as PermissionAction,
+		}));
+
+	const resourceOptions = Object.values(Resource)
+		.filter((value) => typeof value === 'string')
+		.map((resource) => ({
+			label: resource as string,
+			value: resource as Resource,
+		}));
 
 	const handleSubmit = () => {
 		const { id, name, description } = form;
@@ -133,58 +203,95 @@ export default function RoleModal({
 	};
 
 	return (
-		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div className="modal">
-				<h2 className="modal__title">
-					{initialData?.id ? 'Edit Role' : 'Create Role'}
-				</h2>
+		<Portal>
+			<div className="modal-overlay" onClick={handleOverlayClick}>
+				<div className="modal">
+					<h2 className="modal__title">
+						{initialData?.id ? 'Edit Role' : 'Create Role'}
+					</h2>
 
-				<div className="modal__content">
-					<div className="form-row">
-						<div className="form-group">
-							<label>Role Name</label>
-							<input
-								name="name"
-								type="text"
-								value={form.name ?? ''}
-								onChange={handleChange}
-								placeholder="Enter role name"
-							/>
+					<div className="modal__content">
+						<div className="form-row">
+							<div className="form-group">
+								<label>Role Name</label>
+								<input
+									name="name"
+									type="text"
+									value={form.name ?? ''}
+									onChange={handleChange}
+									placeholder="Enter role name"
+								/>
+							</div>
+							<div className="form-group">
+								<label>Description</label>
+								<input
+									name="description"
+									type="text"
+									value={form?.description ?? ''}
+									onChange={handleChange}
+									placeholder="Enter description"
+								/>
+							</div>
 						</div>
-						<div className="form-group">
-							<label>Description</label>
-							<input
-								name="description"
-								type="text"
-								value={form?.description ?? ''}
-								onChange={handleChange}
-								placeholder="Enter description"
+
+						<Page title="Permissions" isShowTitle={true}>
+							<div
+								style={{
+									marginBottom: '16px',
+									display: 'flex',
+									gap: '16px',
+								}}
+							>
+								<Select
+									mode="multiple"
+									allowClear
+									style={{ width: '200px' }}
+									placeholder="Filter by Action"
+									value={
+										permissionQuery.permissionActions || []
+									}
+									onChange={handleActionFilterChange}
+									options={actionOptions}
+									getPopupContainer={(trigger) =>
+										trigger.parentElement || document.body
+									}
+								/>
+								<Select
+									mode="multiple"
+									allowClear
+									style={{ width: '200px' }}
+									placeholder="Filter by Resource"
+									value={permissionQuery.resources || []}
+									onChange={handleResourceFilterChange}
+									options={resourceOptions}
+									getPopupContainer={(trigger) =>
+										trigger.parentElement || document.body
+									}
+								/>
+							</div>
+							<TableSelect
+								data={permissions}
+								columns={permissionConfigsColumnTable}
+								selectedKeys={selectedPermissionIds}
+								onSelectChange={setSelectedPermissionIds}
+								onSearch={handleSearch}
+								pagination={pagination}
+								onPageChange={handlePageChange}
+								onSortChange={handleSortChange}
 							/>
-						</div>
+						</Page>
 					</div>
 
-					<Page title="Permissions" isShowTitle={true}>
-						<TableSelect
-							data={permissions}
-							columns={permissionConfigsColumnTable}
-							selectedKeys={selectedPermissionIds}
-							onSelectChange={setSelectedPermissionIds}
-							onSearch={handleSearch}
-							pagination={pagination}
-							onPageChange={handlePageChange}
-						/>
-					</Page>
-				</div>
-
-				<div className="modal__actions">
-					<button className="btn btn-cancel" onClick={onClose}>
-						Cancel
-					</button>
-					<button className="btn btn-blue" onClick={handleSubmit}>
-						Save
-					</button>
+					<div className="modal__actions">
+						<button className="btn btn-cancel" onClick={onClose}>
+							Cancel
+						</button>
+						<button className="btn btn-blue" onClick={handleSubmit}>
+							Save
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
+		</Portal>
 	);
 }
