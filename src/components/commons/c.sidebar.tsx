@@ -77,12 +77,14 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <CreditCard size={18} strokeWidth={2.5} />,
 		to: '/plans',
 		section: 'plans',
+		requiredPermission: APP_PERMISSIONS.READ_PLAN,
 	},
 	{
 		display: 'Shared With Me',
 		icon: <Share2 size={18} strokeWidth={2.5} />,
 		to: '/share-with-me',
 		section: 'share-with-me',
+		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
 	},
 	{
 		display: 'Storage',

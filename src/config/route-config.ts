@@ -11,9 +11,13 @@ export interface RouteConfig {
 }
 
 export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
+	'/': {
+		path: '/',
+		requiredRoles: [], // No role requirement for root, it will redirect
+	},
 	'/home': {
 		path: '/home',
-		requiredRoles: ['Admin', 'User', 'Sale'],
+		requiredRoles: ['Admin', 'User'],
 	},
 	'/users': {
 		path: '/users',
@@ -32,7 +36,7 @@ export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
 	},
 	'/plans': {
 		path: '/plans',
-		requiredRoles: ['Admin', 'Sale'],
+		requiredRoles: ['Admin', 'Sale', 'User'],
 		redirectTo: '/home',
 	},
 	'/my-profile': {
@@ -56,44 +60,60 @@ export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
 	},
 	'/share-with-me': {
 		path: '/share-with-me',
-		requiredRoles: ['Admin', 'User', 'Sale'],
+		requiredRoles: ['Admin', 'User'],
 	},
 };
 
 /**
  * Get default redirect path based on user roles
+ * Returns the first accessible route for the user
  */
 export function getDefaultRedirectPath(userRoles?: string[]): string {
 	if (!userRoles || userRoles.length === 0) {
 		return '/login';
 	}
 
-	// Admin can go anywhere, default to home
-	if (userRoles.includes('Admin')) {
-		return '/home';
+	// Get all accessible routes for user
+	const accessibleRoutes = getAccessibleRoutesByRoles(userRoles);
+
+	// If user has accessible routes, return the first one
+	if (accessibleRoutes.length > 0) {
+		return accessibleRoutes[0];
 	}
 
-	// Sale can access plans or home
-	if (userRoles.includes('Sale')) {
-		return '/plans';
-	}
-
-	// User defaults to home
-	return '/home';
+	// Fallback to login if no accessible routes
+	return '/login';
 }
 
 /**
  * Get all accessible routes for given roles
+ * Returns routes in priority order
  */
 export function getAccessibleRoutesByRoles(roles: string[]): string[] {
-	return Object.values(ROUTE_CONFIGS)
-		.filter((config) => {
-			if (!config.requiredRoles || config.requiredRoles.length === 0) {
-				return true;
-			}
-			return roles.some((role) => config.requiredRoles?.includes(role));
-		})
-		.map((config) => config.path);
+	// Define route priority order
+	const routePriority = [
+		'/home',
+		'/plans',
+		'/users',
+		'/roles',
+		'/permissions',
+		'/my-profile',
+		'/storage',
+		'/trash',
+		'/app-config',
+		'/share-with-me',
+	];
+
+	return routePriority.filter((route) => {
+		const config = ROUTE_CONFIGS[route];
+		if (!config) return false;
+
+		if (!config.requiredRoles || config.requiredRoles.length === 0) {
+			return true;
+		}
+
+		return roles.some((role) => config.requiredRoles?.includes(role));
+	});
 }
 
 /**
