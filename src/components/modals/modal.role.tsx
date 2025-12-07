@@ -54,19 +54,7 @@ export default function RoleModal({
 	// ===== FETCH PERMISSIONS =====
 	const fetchPermissions = async (params?: GetListPermissionDto) => {
 		try {
-			const queryParams = {
-				...params,
-				permissionActions:
-					params?.permissionActions &&
-					params.permissionActions.length > 0
-						? params.permissionActions.join(',')
-						: undefined,
-				resources:
-					params?.resources && params.resources.length > 0
-						? params.resources.join(',')
-						: undefined,
-			};
-			const { data } = await permissionApi.getList(queryParams as any);
+			const { data } = await permissionApi.getList(params);
 			setPermissions(data?.items ?? []);
 
 			if (data?.metadata) {
@@ -135,7 +123,8 @@ export default function RoleModal({
 			(prev) =>
 				new GetListPermissionDto({
 					...prev,
-					permissionActions: values.length > 0 ? values : undefined,
+					permissionActions:
+						values.length > 0 ? values.join(',') : undefined,
 					page: 1,
 				}),
 		);
@@ -146,7 +135,7 @@ export default function RoleModal({
 			(prev) =>
 				new GetListPermissionDto({
 					...prev,
-					resources: values.length > 0 ? values : undefined,
+					resources: values.length > 0 ? values.join(',') : undefined,
 					page: 1,
 				}),
 		);
@@ -248,7 +237,10 @@ export default function RoleModal({
 									style={{ width: '200px' }}
 									placeholder="Filter by Action"
 									value={
-										permissionQuery.permissionActions || []
+										(permissionQuery.permissionActions
+											?.split(',')
+											.filter(Boolean) ||
+											[]) as PermissionAction[]
 									}
 									onChange={handleActionFilterChange}
 									options={actionOptions}
@@ -261,7 +253,12 @@ export default function RoleModal({
 									allowClear
 									style={{ width: '200px' }}
 									placeholder="Filter by Resource"
-									value={permissionQuery.resources || []}
+									value={
+										(permissionQuery.resources
+											?.split(',')
+											.filter(Boolean) ||
+											[]) as Resource[]
+									}
 									onChange={handleResourceFilterChange}
 									options={resourceOptions}
 									getPopupContainer={(trigger) =>
