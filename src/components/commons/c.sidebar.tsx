@@ -80,6 +80,13 @@ const sidebarNavItems: SidebarItem[] = [
 		requiredPermission: APP_PERMISSIONS.READ_PLAN,
 	},
 	{
+		display: 'Payment',
+		icon: <CreditCard size={18} strokeWidth={2.5} />,
+		to: '/payment',
+		section: 'payment',
+		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
+	},
+	{
 		display: 'Shared With Me',
 		icon: <Share2 size={18} strokeWidth={2.5} />,
 		to: '/share-with-me',

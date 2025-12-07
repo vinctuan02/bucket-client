@@ -39,6 +39,11 @@ export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
 		requiredRoles: ['Admin', 'Sale', 'User'],
 		redirectTo: '/home',
 	},
+	'/payment': {
+		path: '/payment',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
 	'/my-profile': {
 		path: '/my-profile',
 		requiredRoles: ['Admin', 'User', 'Sale'],
@@ -94,6 +99,7 @@ export function getAccessibleRoutesByRoles(roles: string[]): string[] {
 	const routePriority = [
 		'/home',
 		'/plans',
+		'/payment',
 		'/users',
 		'/roles',
 		'/permissions',
