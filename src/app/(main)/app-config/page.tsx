@@ -1,5 +1,6 @@
 'use client';
 
+import IconUpload from '@/components/IconUpload';
 import { useAppConfigStore } from '@/modules/app-config/app-config.store';
 import { Button, Card, Form, InputNumber, message, Spin } from 'antd';
 import { useEffect } from 'react';
@@ -45,6 +46,14 @@ export default function AppConfigPage() {
 					initialValues={config || undefined}
 				>
 					<Form.Item
+						label="Application Icon"
+						name="icon"
+						extra="Upload a custom icon for your application (recommended size: 512x512px)"
+					>
+						<IconUpload />
+					</Form.Item>
+
+					<Form.Item
 						label="Trash Retention Days"
 						name="trashRetentionDays"
 						rules={[
@@ -69,7 +78,7 @@ export default function AppConfigPage() {
 							htmlType="submit"
 							loading={loading}
 						>
-							Save Configuration
+							Save
 						</Button>
 					</Form.Item>
 				</Form>

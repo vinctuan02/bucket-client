@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppConfigStore } from '@/modules/app-config/app-config.store';
 import { useAuthStore } from '@/modules/commons/store/common.auth-store';
 import { APP_PERMISSIONS } from '@/modules/permissions/permission.constant';
 import {
@@ -93,13 +94,13 @@ const sidebarNavItems: SidebarItem[] = [
 		section: 'share-with-me',
 		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
 	},
-	{
-		display: 'Storage',
-		icon: <CreditCard size={18} strokeWidth={2.5} />,
-		to: '/storage',
-		section: 'storage',
-		requiredPermission: APP_PERMISSIONS.READ_STORAGE,
-	},
+	// {
+	// 	display: 'Storage',
+	// 	icon: <CreditCard size={18} strokeWidth={2.5} />,
+	// 	to: '/storage',
+	// 	section: 'storage',
+	// 	requiredPermission: APP_PERMISSIONS.READ_STORAGE,
+	// },
 	{
 		display: 'Trash',
 		icon: <Trash2 size={18} strokeWidth={2.5} />,
@@ -117,6 +118,11 @@ export default function Sidebar() {
 	const indicatorRef = useRef<HTMLDivElement>(null);
 	const pathname = usePathname();
 	const { user, hasPermission } = useAuthStore();
+	const { config, fetchConfig } = useAppConfigStore();
+
+	useEffect(() => {
+		fetchConfig();
+	}, [fetchConfig]);
 
 	useEffect(() => {
 		// Filter sidebar items based on user permissions
@@ -164,7 +170,21 @@ export default function Sidebar() {
 
 	return (
 		<div className="sidebar">
-			<div className="sidebar__logo">CloudBox</div>
+			<div className="sidebar__logo">
+				{config?.icon && (
+					<img
+						src={config.icon}
+						alt="App Icon"
+						style={{
+							width: '24px',
+							height: '24px',
+							marginRight: '8px',
+							objectFit: 'contain',
+						}}
+					/>
+				)}
+				CloudBox
+			</div>
 			<div ref={sidebarRef} className="sidebar__menu">
 				<div
 					ref={indicatorRef}

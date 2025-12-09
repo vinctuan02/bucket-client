@@ -15,6 +15,7 @@ export interface User extends BaseUUIDEntity {
 	// modifier: User;
 	provider: string | null;
 	providerId: string | null;
+	trashRetentionDays: number | null;
 	userRoles?: UserRole[];
 }
 

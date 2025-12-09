@@ -15,6 +15,12 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto extends Partial<CreateUserDto> {}
 
+export interface UpdateProfileDto {
+	name?: string;
+	avatar?: string;
+	trashRetentionDays?: number | null;
+}
+
 export class GetListUserDto extends BaseQueryDto {
 	fieldOrder: string = UserFieldOrder.NAME;
 

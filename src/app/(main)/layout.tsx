@@ -76,31 +76,25 @@ export default function RootLayout({
 	}, [router, setUser, setIsLoading]);
 
 	return (
-		<html lang="en">
-			<body className="root-layout">
-				<AntdRegistry>
-					<ProtectedLayout>
-						<UploadProvider>
-							<Sidebar />
-							<div className="layout-main">
-								<div
-									className={`layout-header ${headerVisible ? '' : 'hidden'}`}
-								>
-									<div className="header-wrapper">
-										<Header />
-									</div>
-								</div>
-
-								<div className="layout-header-space" />
-								<main className="layout-content">
-									{children}
-								</main>
+		<AntdRegistry>
+			<ProtectedLayout>
+				<UploadProvider>
+					<Sidebar />
+					<div className="layout-main">
+						<div
+							className={`layout-header ${headerVisible ? '' : 'hidden'}`}
+						>
+							<div className="header-wrapper">
+								<Header />
 							</div>
-							<GlobalUploadProgress />
-						</UploadProvider>
-					</ProtectedLayout>
-				</AntdRegistry>
-			</body>
-		</html>
+						</div>
+
+						<div className="layout-header-space" />
+						<main className="layout-content">{children}</main>
+					</div>
+					<GlobalUploadProgress />
+				</UploadProvider>
+			</ProtectedLayout>
+		</AntdRegistry>
 	);
 }

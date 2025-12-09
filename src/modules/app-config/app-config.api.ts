@@ -15,4 +15,15 @@ export const appConfigApi = {
 		const res = await api.put<ResponseSuccess<AppConfig>>(BASE_URL, data);
 		return res.data;
 	},
+
+	getIconUploadUrl: async (fileMetadata: {
+		fileName: string;
+		fileSize: number;
+		contentType: string;
+	}) => {
+		const res = await api.post<
+			ResponseSuccess<{ uploadUrl: string; iconUrl: string }>
+		>(`${BASE_URL}/icon-upload-url`, fileMetadata);
+		return res.data;
+	},
 };

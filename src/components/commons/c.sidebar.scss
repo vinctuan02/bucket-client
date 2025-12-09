@@ -14,8 +14,9 @@
 	z-index: 10;
 
 	&__logo {
-		display: grid;
-		place-items: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		height: 120px;
 		font-size: 1.5rem;
 		font-weight: 700;
