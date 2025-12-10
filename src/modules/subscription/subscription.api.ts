@@ -11,6 +11,7 @@ import {
 
 const SUBSCRIPTION_BASE_URL = '/subscription/subscriptions';
 const PLAN_BASE_URL = '/subscription/plans';
+const PLAN_SIMPLE_BASE_URL = '/subscription/plans/simple';
 
 export const subscriptionApi = {
 	// Subscription endpoints
@@ -51,6 +52,15 @@ export const planApi = {
 		return res.data?.data;
 	},
 
+	// Simple plan list without authentication
+	getListSimple: async () => {
+		const res =
+			await api.get<ResponseSuccess<PlanResponseDto[]>>(
+				PLAN_SIMPLE_BASE_URL,
+			);
+		return res.data?.data;
+	},
+
 	getOne: async (id: string) =>
 		await api.get<ResponseSuccess<PlanResponseDto>>(
 			`${PLAN_BASE_URL}/${id}`,
@@ -64,4 +74,14 @@ export const planApi = {
 
 	delete: async (id: string) =>
 		await api.delete<ResponseSuccess<null>>(`${PLAN_BASE_URL}/${id}`),
+};
+
+export const paymentApi = {
+	// Payment endpoints
+	getTransactionHistory: async () => {
+		const res = await api.get<ResponseSuccess<any[]>>(
+			'/subscription/payment/history',
+		);
+		return res.data?.data;
+	},
 };

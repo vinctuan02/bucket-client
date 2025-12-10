@@ -7,7 +7,6 @@ import {
 	EyeOutlined,
 	HistoryOutlined,
 	ReloadOutlined,
-	ShoppingOutlined,
 } from '@ant-design/icons';
 import {
 	Badge,
@@ -21,21 +20,12 @@ import {
 	Space,
 	Spin,
 	Table,
-	Tabs,
 	Tag,
 	Typography,
 	message,
 } from 'antd';
-
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import PaymentModal from '../../../components/modals/modal.payment';
-import StoragePlanCard from '../../../modules/subscription/components/storage-plan-card';
-import {
-	paymentApi,
-	planApi,
-} from '../../../modules/subscription/subscription.api';
-import { PlanResponseDto } from '../../../modules/subscription/subscription.dto';
-import './payment.scss';
 
 const { Title, Text } = Typography;
 
@@ -67,49 +57,41 @@ interface Transaction {
 	subscription?: Subscription;
 }
 
-export default function PaymentPage() {
-	const [activeTab, setActiveTab] = useState('plans');
-	const [plans, setPlans] = useState<PlanResponseDto[]>([]);
+export default function PaymentHistoryPage() {
+	const router = useRouter();
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [historyLoading, setHistoryLoading] = useState(false);
-	const [selectedPlan, setSelectedPlan] = useState<PlanResponseDto | null>(
-		null,
-	);
 	const [selectedTransaction, setSelectedTransaction] =
 		useState<Transaction | null>(null);
-	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 	const [detailModalVisible, setDetailModalVisible] = useState(false);
 
 	useEffect(() => {
-		fetchPlans();
-		if (activeTab === 'history') {
-			fetchTransactionHistory();
-		}
-	}, [activeTab]);
-
-	const fetchPlans = async () => {
-		try {
-			setLoading(true);
-			const response = await planApi.getListSimple();
-			setPlans(response || []);
-		} catch (error) {
-			console.error('Failed to fetch plans:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
+		fetchTransactionHistory();
+	}, []);
 
 	const fetchTransactionHistory = async () => {
-		setHistoryLoading(true);
+		setLoading(true);
 		try {
-			const data = await paymentApi.getTransactionHistory();
-			setTransactions(data || []);
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/subscription/payment/history`,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to fetch transaction history');
+			}
+
+			const data = await response.json();
+			setTransactions(data);
 		} catch (error) {
 			message.error('Failed to load transaction history');
 			console.error(error);
 		} finally {
-			setHistoryLoading(false);
+			setLoading(false);
 		}
 	};
 
@@ -173,22 +155,9 @@ export default function PaymentPage() {
 		}
 	};
 
-	const handleSelectPlan = (plan: PlanResponseDto) => {
-		setSelectedPlan(plan);
-		setPaymentModalOpen(true);
-	};
-
-	const handlePaymentSuccess = () => {
-		window.location.reload();
-	};
-
 	const showTransactionDetail = (transaction: Transaction) => {
 		setSelectedTransaction(transaction);
 		setDetailModalVisible(true);
-	};
-
-	const handleTabChange = (key: string) => {
-		setActiveTab(key);
 	};
 
 	const columns = [
@@ -259,143 +228,88 @@ export default function PaymentPage() {
 			title: 'Hành động',
 			key: 'actions',
 			render: (record: Transaction) => (
-				<Button
-					type="link"
-					icon={<EyeOutlined />}
-					onClick={() => showTransactionDetail(record)}
-				>
-					Chi tiết
-				</Button>
+				<Space>
+					<Button
+						type="link"
+						icon={<EyeOutlined />}
+						onClick={() => showTransactionDetail(record)}
+					>
+						Chi tiết
+					</Button>
+					<Button
+						type="link"
+						onClick={() =>
+							router.push(`/payment/detail/${record.id}`)
+						}
+					>
+						Xem đầy đủ
+					</Button>
+				</Space>
 			),
 		},
 	];
 
-	const tabItems = [
-		{
-			key: 'plans',
-			label: (
-				<span>
-					<ShoppingOutlined />
-					Gói dịch vụ
-				</span>
-			),
-			children: (
-				<div>
-					{loading ? (
-						<div className="flex justify-center items-center py-12">
-							<Spin size="large" tip="Đang tải gói dịch vụ..." />
-						</div>
-					) : (
-						<div className="plans-container">
-							<div className="plans-grid">
-								{plans.length > 0 ? (
-									plans.map((plan) => (
-										<StoragePlanCard
-											key={plan.id}
-											plan={plan}
-											onSelect={handleSelectPlan}
-											loading={false}
-										/>
-									))
-								) : (
-									<Empty
-										description="Không có gói dịch vụ nào"
-										image={Empty.PRESENTED_IMAGE_SIMPLE}
-									/>
-								)}
-							</div>
-						</div>
-					)}
-				</div>
-			),
-		},
-		{
-			key: 'history',
-			label: (
-				<span>
-					<HistoryOutlined />
-					Lịch sử thanh toán
-				</span>
-			),
-			children: (
-				<div>
-					<div className="mb-4 flex items-center justify-end">
-						<Button
-							icon={<ReloadOutlined />}
-							onClick={fetchTransactionHistory}
-							loading={historyLoading}
-						>
-							Làm mới
-						</Button>
-					</div>
-
-					{historyLoading ? (
-						<div className="flex justify-center items-center py-12">
-							<Spin
-								size="large"
-								tip="Đang tải lịch sử thanh toán..."
-							/>
-						</div>
-					) : transactions.length === 0 ? (
-						<div className="text-center py-12">
-							<Empty
-								description="Chưa có giao dịch nào"
-								image={Empty.PRESENTED_IMAGE_SIMPLE}
-							>
-								<Button
-									type="primary"
-									onClick={() => setActiveTab('plans')}
-								>
-									Mua gói dịch vụ
-								</Button>
-							</Empty>
-						</div>
-					) : (
-						<Table
-							columns={columns}
-							dataSource={transactions}
-							rowKey="id"
-							pagination={{
-								pageSize: 10,
-								showSizeChanger: true,
-								showQuickJumper: true,
-								showTotal: (
-									total: number,
-									range: [number, number],
-								) =>
-									`${range[0]}-${range[1]} của ${total} giao dịch`,
-								pageSizeOptions: ['10', '20', '50', '100'],
-								showLessItems: true,
-							}}
-							scroll={{ x: 800 }}
-							size="middle"
-							className="transaction-table"
-						/>
-					)}
-				</div>
-			),
-		},
-	];
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<Spin size="large" tip="Đang tải lịch sử thanh toán..." />
+			</div>
+		);
+	}
 
 	return (
-		<div style={{ padding: '24px' }}>
-			<Tabs
-				activeKey={activeTab}
-				onChange={handleTabChange}
-				items={tabItems}
-				size="large"
-				className="payment-tabs"
-			/>
+		<div className="container mx-auto px-4 py-8 max-w-7xl">
+			<div className="mb-8">
+				<div className="flex items-center justify-between">
+					<div>
+						<Title level={2}>
+							<HistoryOutlined className="mr-3 text-blue-500" />
+							Lịch sử thanh toán
+						</Title>
+						<Text type="secondary">
+							Xem tất cả các giao dịch và đơn hàng của bạn
+						</Text>
+					</div>
+					<Button
+						icon={<ReloadOutlined />}
+						onClick={fetchTransactionHistory}
+						loading={loading}
+					>
+						Làm mới
+					</Button>
+				</div>
+			</div>
 
-			{/* Payment Modal */}
-			{selectedPlan && (
-				<PaymentModal
-					open={paymentModalOpen}
-					planId={selectedPlan.id}
-					planName={selectedPlan.name}
-					onClose={() => setPaymentModalOpen(false)}
-					onSuccess={handlePaymentSuccess}
-				/>
+			{transactions.length === 0 ? (
+				<Card>
+					<Empty
+						description="Chưa có giao dịch nào"
+						image={Empty.PRESENTED_IMAGE_SIMPLE}
+					>
+						<Button
+							type="primary"
+							onClick={() => router.push('/payment')}
+						>
+							Mua gói dịch vụ
+						</Button>
+					</Empty>
+				</Card>
+			) : (
+				<Card>
+					<Table
+						columns={columns}
+						dataSource={transactions}
+						rowKey="id"
+						pagination={{
+							pageSize: 10,
+							showSizeChanger: true,
+							showQuickJumper: true,
+							showTotal: (total, range) =>
+								`${range[0]}-${range[1]} của ${total} giao dịch`,
+						}}
+						scroll={{ x: 800 }}
+					/>
+				</Card>
 			)}
 
 			{/* Transaction Detail Modal */}
@@ -412,11 +326,11 @@ export default function PaymentPage() {
 					</Button>,
 					selectedTransaction?.status === 'SUCCESS' && (
 						<Button
-							key="plans"
+							key="subscription"
 							type="primary"
 							onClick={() => {
 								setDetailModalVisible(false);
-								setActiveTab('plans');
+								router.push('/payment');
 							}}
 						>
 							Xem gói dịch vụ
@@ -579,13 +493,14 @@ export default function PaymentPage() {
 													setDetailModalVisible(
 														false,
 													);
-													setActiveTab('plans');
+													router.push('/payment');
 												}}
 											>
 												Thử lại
 											</Button>
 											<Button
 												onClick={() => {
+													// You can implement support contact here
 													window.open(
 														'mailto:support@yourdomain.com',
 														'_blank',

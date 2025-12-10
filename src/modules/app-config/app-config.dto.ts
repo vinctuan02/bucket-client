@@ -1,4 +1,4 @@
 export interface UpdateAppConfigDto {
-	trashRetentionDays: number;
+	trashRetentionDays?: number;
 	icon?: string | null;
 }

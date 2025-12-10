@@ -11,12 +11,10 @@ export interface CheckoutRequest {
 }
 
 export interface CheckoutResponse {
-	status: TransactionStatus;
+	status: string;
 	transactionId: string;
-	paymentInfo: {
-		paymentUrl: string;
-		description: string;
-	};
+	checkoutUrl: string;
+	formData: Record<string, string>;
 	subscription: {
 		id: string;
 		planName: string;

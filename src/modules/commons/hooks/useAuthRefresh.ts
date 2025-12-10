@@ -20,7 +20,7 @@ export const useAuthRefresh = () => {
 				// Refresh token 5 minutes before expiry
 				if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
 					const res = await authApi.refreshToken({ refreshToken });
-					const newAccessToken = res.data?.accessToken;
+					const newAccessToken = res.data?.access_token;
 
 					if (newAccessToken) {
 						localStorage.setItem('access_token', newAccessToken);

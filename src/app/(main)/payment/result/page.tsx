@@ -1,7 +1,14 @@
 'use client';
 
-import { paymentApi } from '@/api/payment.api';
-import { TransactionStatus } from '@/types/payment.types';
+// import { paymentApi } from '@/api/payment.api';
+// import { TransactionStatus } from '@/types/payment.types';
+
+enum TransactionStatus {
+	PENDING = 'PENDING',
+	SUCCESS = 'SUCCESS',
+	FAILED = 'FAILED',
+	CANCELED = 'CANCELED',
+}
 import {
 	CheckCircleOutlined,
 	CloseCircleOutlined,
@@ -34,9 +41,22 @@ export default function PaymentResultPage() {
 		if (!transactionId) return;
 
 		try {
-			const response = await paymentApi.checkStatus(transactionId);
-			setStatus(response.status);
-			setPaymentData(response);
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/subscription/payment/status/${transactionId}`,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to check payment status');
+			}
+
+			const data = await response.json();
+			setStatus(data.status);
+			setPaymentData(data);
 		} catch (error) {
 			console.error('Failed to check payment status:', error);
 			setStatus(TransactionStatus.FAILED);

@@ -80,6 +80,7 @@ const sidebarNavItems: SidebarItem[] = [
 		section: 'plans',
 		requiredPermission: APP_PERMISSIONS.READ_PLAN,
 	},
+
 	{
 		display: 'Payment',
 		icon: <CreditCard size={18} strokeWidth={2.5} />,

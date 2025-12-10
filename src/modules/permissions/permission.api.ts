@@ -1,7 +1,7 @@
-import { Permission } from '@/modules/users/user.entity';
 import { PageDto, ResponseSuccess } from '@/types/type.response';
 import api from '../commons/const/common.const.api';
 import { GetListPermissionDto } from './permission.dto';
+import { Permission } from './permission.entity';
 
 const BASE_URL = '/permissions';
 

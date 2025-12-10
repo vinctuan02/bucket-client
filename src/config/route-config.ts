@@ -1,6 +1,14 @@
 /**
  * Centralized route configuration for RBAC
  * Defines which roles can access which routes
+ *
+ * Hierarchical Route Matching:
+ * - Routes are first matched exactly against ROUTE_CONFIGS
+ * - If no exact match is found, the system looks for parent route configurations
+ * - Parent routes are found by progressively removing path segments
+ * - Example: /payment/success/details -> /payment/success -> /payment
+ * - The first matching parent route's permissions are inherited
+ * - If no parent route is found, access is denied by default
  */
 
 export interface RouteConfig {
@@ -44,6 +52,42 @@ export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
 		requiredRoles: ['Admin', 'User', 'Sale'],
 		redirectTo: '/home',
 	},
+	'/payment/success': {
+		path: '/payment/success',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/error': {
+		path: '/payment/error',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/cancel': {
+		path: '/payment/cancel',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/result': {
+		path: '/payment/result',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/checkout': {
+		path: '/payment/checkout',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/demo': {
+		path: '/payment/demo',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+	'/payment/history': {
+		path: '/payment/history',
+		requiredRoles: ['Admin', 'User', 'Sale'],
+		redirectTo: '/home',
+	},
+
 	'/my-profile': {
 		path: '/my-profile',
 		requiredRoles: ['Admin', 'User', 'Sale'],
@@ -123,13 +167,45 @@ export function getAccessibleRoutesByRoles(roles: string[]): string[] {
 }
 
 /**
- * Check if user can access a specific route
+ * Find parent route configuration by progressively removing path segments
+ */
+function findParentRouteConfig(path: string): RouteConfig | null {
+	// Sanitize path - remove trailing slash and ensure it starts with /
+	const sanitizedPath = path.replace(/\/+$/, '') || '/';
+
+	// Split path into segments
+	const segments = sanitizedPath.split('/').filter(Boolean);
+
+	// Try progressively shorter paths
+	for (let i = segments.length - 1; i >= 0; i--) {
+		const parentPath = '/' + segments.slice(0, i).join('/');
+		const normalizedParentPath = parentPath === '/' ? '/' : parentPath;
+
+		if (ROUTE_CONFIGS[normalizedParentPath]) {
+			return ROUTE_CONFIGS[normalizedParentPath];
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Check if user can access a specific route with hierarchical inheritance
  */
 export function canAccessRouteByRoles(path: string, roles: string[]): boolean {
-	const config = ROUTE_CONFIGS[path];
+	// Sanitize path
+	const sanitizedPath = path.replace(/\/+$/, '') || '/';
+
+	// First try exact match
+	let config: RouteConfig | undefined = ROUTE_CONFIGS[sanitizedPath];
+
+	// If no exact match, try to find parent route configuration
+	if (!config) {
+		config = findParentRouteConfig(sanitizedPath) || undefined;
+	}
 
 	if (!config) {
-		// Route not configured, deny access by default
+		// No route configuration found (exact or parent), deny access by default
 		return false;
 	}
 
@@ -139,5 +215,5 @@ export function canAccessRouteByRoles(path: string, roles: string[]): boolean {
 	}
 
 	// Check if user has any of the required roles
-	return roles.some((role) => config.requiredRoles?.includes(role));
+	return roles.some((role) => config!.requiredRoles?.includes(role));
 }

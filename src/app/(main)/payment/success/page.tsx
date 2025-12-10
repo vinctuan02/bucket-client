@@ -1,87 +1,94 @@
 'use client';
 
-import { CheckCircleOutlined } from '@ant-design/icons';
-import { Button, Card, Result, Spin, message } from 'antd';
+import TransactionDetailCard from '@/components/payment/TransactionDetailCard';
+import { useTransactionDetail } from '@/hooks/useTransactionDetail';
+import { CheckCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Card, Result, Space, Spin, message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function PaymentSuccessPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const [loading, setLoading] = useState(true);
-	const [paymentStatus, setPaymentStatus] = useState<any>(null);
-	const [error, setError] = useState<string | null>(null);
-
 	const transactionId = searchParams.get('transactionId');
 
+	const { transaction, loading, error, refetch } =
+		useTransactionDetail(transactionId);
+
 	useEffect(() => {
-		if (!transactionId) {
-			setError('Transaction ID not found');
-			setLoading(false);
-			return;
+		if (transaction?.status === 'SUCCESS') {
+			message.success('Payment successful!');
 		}
-
-		const checkPaymentStatus = async () => {
-			try {
-				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/subscription/payment/status/${transactionId}`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem('token')}`,
-						},
-					},
-				);
-
-				if (!response.ok) {
-					throw new Error('Failed to check payment status');
-				}
-
-				const data = await response.json();
-				setPaymentStatus(data);
-
-				if (data.status === 'SUCCESS') {
-					message.success('Payment successful!');
-				} else if (data.status === 'FAILED') {
-					setError('Payment failed. Please try again.');
-				} else {
-					setError('Payment status is pending. Please wait.');
-				}
-			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : 'An error occurred',
-				);
-				message.error('Failed to check payment status');
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		checkPaymentStatus();
-	}, [transactionId]);
+	}, [transaction]);
 
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
-				<Spin size="large" tip="Checking payment status..." />
+				<Spin size="large" tip="Loading transaction details..." />
 			</div>
 		);
 	}
 
-	if (error) {
+	if (error || !transactionId) {
 		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<Card className="w-full max-w-md">
+			<div className="flex items-center justify-center min-h-screen p-4">
+				<Card className="w-full max-w-lg">
 					<Result
-						status="error"
-						title="Payment Error"
-						subTitle={error}
+						status="warning"
+						title="Payment Status Check"
+						subTitle={error || 'Transaction ID not found in URL'}
 						extra={
-							<Button
-								type="primary"
-								onClick={() => router.push('/subscription')}
-							>
-								Back to Subscription
-							</Button>
+							<Space>
+								{transactionId && (
+									<Button
+										type="primary"
+										icon={<ReloadOutlined />}
+										onClick={refetch}
+										loading={loading}
+									>
+										Refresh Status
+									</Button>
+								)}
+								<Button onClick={() => router.push('/payment')}>
+									Back to Payment
+								</Button>
+								<Button
+									onClick={() =>
+										router.push('/payment/history')
+									}
+								>
+									Payment History
+								</Button>
+							</Space>
+						}
+					/>
+				</Card>
+			</div>
+		);
+	}
+
+	if (!transaction) {
+		return (
+			<div className="flex items-center justify-center min-h-screen p-4">
+				<Card className="w-full max-w-lg">
+					<Result
+						status="404"
+						title="Transaction Not Found"
+						subTitle="The requested transaction could not be found."
+						extra={
+							<Space>
+								<Button
+									type="primary"
+									onClick={() =>
+										router.push('/payment/history')
+									}
+								>
+									View Payment History
+								</Button>
+								<Button onClick={() => router.push('/payment')}>
+									Back to Payment
+								</Button>
+							</Space>
 						}
 					/>
 				</Card>
@@ -90,8 +97,8 @@ export default function PaymentSuccessPage() {
 	}
 
 	return (
-		<div className="flex items-center justify-center min-h-screen">
-			<Card className="w-full max-w-md">
+		<div className="flex items-center justify-center min-h-screen p-4">
+			<Card className="w-full max-w-2xl">
 				<Result
 					icon={
 						<CheckCircleOutlined
@@ -100,56 +107,36 @@ export default function PaymentSuccessPage() {
 					}
 					status="success"
 					title="Payment Successful!"
-					subTitle={
-						<div className="space-y-2">
-							<p>Your subscription has been activated.</p>
-							{paymentStatus?.subscription && (
-								<div className="text-left">
-									<p>
-										<strong>Plan:</strong>{' '}
-										{paymentStatus.subscription.plan?.name}
-									</p>
-									<p>
-										<strong>Duration:</strong>{' '}
-										{
-											paymentStatus.subscription.plan
-												?.durationDays
-										}{' '}
-										days
-									</p>
-									<p>
-										<strong>Storage:</strong>{' '}
-										{
-											paymentStatus.subscription.plan
-												?.storageLimit
-										}{' '}
-										GB
-									</p>
-									<p>
-										<strong>Start Date:</strong>{' '}
-										{new Date(
-											paymentStatus.subscription.startDate,
-										).toLocaleDateString()}
-									</p>
-									<p>
-										<strong>End Date:</strong>{' '}
-										{new Date(
-											paymentStatus.subscription.endDate,
-										).toLocaleDateString()}
-									</p>
-								</div>
-							)}
-						</div>
-					}
-					extra={
+					subTitle="Your subscription has been activated successfully."
+				/>
+
+				<div className="mt-6">
+					<TransactionDetailCard transaction={transaction} />
+				</div>
+
+				<div className="mt-6 text-center">
+					<Space>
 						<Button
 							type="primary"
+							size="large"
 							onClick={() => router.push('/dashboard')}
 						>
 							Go to Dashboard
 						</Button>
-					}
-				/>
+						<Button
+							size="large"
+							onClick={() => router.push('/payment')}
+						>
+							View Plans
+						</Button>
+						<Button
+							size="large"
+							onClick={() => router.push('/payment/history')}
+						>
+							Payment History
+						</Button>
+					</Space>
+				</div>
 			</Card>
 		</div>
 	);

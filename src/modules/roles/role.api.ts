@@ -1,7 +1,7 @@
-import { Role } from '@/modules/users/user.entity';
 import { PageDto, ResponseSuccess } from '@/types/type.response';
 import api from '../commons/const/common.const.api';
 import { CreateRoleDto, GetListRoleDto, UpdateRoleDto } from './role.dto';
+import { Role } from './role.entity';
 
 const BASE_URL = '/roles';
 

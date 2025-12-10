@@ -9,9 +9,8 @@ import { planApi } from '@/modules/subscription/subscription.api';
 import { PlanResponseDto } from '@/modules/subscription/subscription.dto';
 import { userApi } from '@/modules/users/user.api';
 import { User } from '@/modules/users/user.entity';
-import { UploadOutlined, UserOutlined } from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 import {
-	Avatar,
 	Button,
 	Card,
 	Form,
@@ -31,7 +30,7 @@ export default function ProfilePage() {
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState(false);
-	const [isEditing, setIsEditing] = useState(false);
+	const [isEditing, setIsEditing] = useState(true);
 	const [avatarFileList, setAvatarFileList] = useState<any[]>([]);
 	const [form] = Form.useForm();
 	const { config, fetchConfig } = useAppConfigStore();
@@ -81,12 +80,8 @@ export default function ProfilePage() {
 	const fetchPlans = async () => {
 		setPlansLoading(true);
 		try {
-			const res = await planApi.getList();
-			// Filter only active plans
-			const activePlans = (res?.items || []).filter(
-				(plan: any) => plan.isActive,
-			);
-			setPlans(activePlans);
+			const res = await planApi.getListSimple();
+			setPlans(res || []);
 		} catch (error) {
 			message.error('Failed to load storage plans');
 		} finally {
@@ -175,49 +170,151 @@ export default function ProfilePage() {
 	const systemDefault = config?.trashRetentionDays || 30;
 
 	const profileContent = (
-		<Card
-			title="Profile Information"
-			extra={
-				!isEditing && (
-					<Button type="primary" onClick={() => setIsEditing(true)}>
-						Edit Profile
-					</Button>
-				)
-			}
-		>
-			{!isEditing ? (
-				<div className="profile-view">
-					<div className="flex items-center gap-4 mb-6">
+		<Card title="Profile Information">
+			{/* <div className="profile-header">
+				<div className="profile-info">
+					<div className="avatar-section">
 						<Avatar
 							size={80}
 							src={user.avatar}
 							icon={<UserOutlined />}
 						/>
-						<div>
-							<h2 className="text-2xl font-bold">{user.name}</h2>
-							<p className="text-gray-500">{user.email}</p>
+						<div className="user-details">
+							<h2 className="user-name">{user.name}</h2>
+							<p className="user-email">{user.email}</p>
 							{user.provider && (
-								<p className="text-sm text-gray-400">
+								<p className="user-provider">
 									Signed in with {user.provider}
 								</p>
 							)}
 						</div>
 					</div>
+				</div>
+			</div> */}
 
-					<div className="space-y-4">
-						<div>
-							<label className="text-gray-600 text-sm">
-								Trash Retention Period
-							</label>
-							<p className="text-lg">
-								{user.trashRetentionDays
-									? `${user.trashRetentionDays} days`
-									: `${systemDefault} days (System Default)`}
-							</p>
-						</div>
-					</div>
+			<Form form={form} layout="vertical" onFinish={handleSubmit}>
+				<Form.Item
+					label="Name"
+					name="name"
+					rules={[
+						{
+							required: true,
+							message: 'Please enter your name',
+						},
+					]}
+				>
+					<Input placeholder="Your name" />
+				</Form.Item>
 
-					<div className="mt-6">
+				<Form.Item label="Avatar">
+					<Upload
+						listType="picture-card"
+						maxCount={1}
+						fileList={avatarFileList}
+						beforeUpload={async (file) => {
+							try {
+								const res = await userApi.getAvatarUploadUrl({
+									fileName: file.name,
+									fileSize: file.size,
+									contentType: file.type || 'image/jpeg',
+								});
+
+								const uploadUrl = res.data?.uploadUrl;
+								const avatarUrl = res.data?.avatarUrl;
+
+								if (!uploadUrl || !avatarUrl) {
+									throw new Error('Failed to get upload URL');
+								}
+
+								await fetch(uploadUrl, {
+									method: 'PUT',
+									body: file,
+									headers: {
+										'Content-Type': file.type,
+									},
+								});
+
+								form.setFieldValue('avatar', avatarUrl);
+								setAvatarFileList([
+									{
+										uid: '-1',
+										name: file.name,
+										status: 'done',
+										url: avatarUrl,
+									},
+								]);
+								message.success('Avatar uploaded successfully');
+							} catch (error) {
+								message.error('Failed to upload avatar');
+							}
+							return false;
+						}}
+						onRemove={() => {
+							form.setFieldValue('avatar', null);
+							setAvatarFileList([]);
+							message.info(
+								'Avatar will be removed when you save',
+							);
+						}}
+					>
+						{avatarFileList.length === 0 && (
+							<div>
+								<UploadOutlined />
+								<div style={{ marginTop: 8 }}>Upload</div>
+							</div>
+						)}
+					</Upload>
+					<Form.Item name="avatar" hidden>
+						<Input />
+					</Form.Item>
+				</Form.Item>
+
+				<Form.Item
+					label="Trash Retention Days"
+					name="trashRetentionDays"
+					extra={`Leave empty to use system default (${systemDefault} days). Files will be permanently deleted after this many days in trash.`}
+				>
+					<InputNumber
+						min={1}
+						max={365}
+						className="w-full"
+						placeholder={`${systemDefault} (System Default)`}
+					/>
+				</Form.Item>
+
+				<Form.Item>
+					<div className="profile-actions">
+						<Button
+							type="primary"
+							htmlType="submit"
+							loading={updating}
+						>
+							Save
+						</Button>
+						<Button
+							onClick={() => {
+								form.setFieldsValue({
+									name: user.name,
+									avatar: user.avatar,
+									trashRetentionDays: user.trashRetentionDays,
+								});
+								if (user.avatar) {
+									setAvatarFileList([
+										{
+											uid: '-1',
+											name: 'avatar',
+											status: 'done',
+											url: user.avatar,
+										},
+									]);
+								} else {
+									setAvatarFileList([]);
+								}
+								message.info('Changes cancelled');
+							}}
+						>
+							Cancel
+						</Button>
 						<Button
 							danger
 							onClick={() => {
@@ -229,241 +326,53 @@ export default function ProfilePage() {
 							Logout
 						</Button>
 					</div>
-				</div>
-			) : (
-				<Form form={form} layout="vertical" onFinish={handleSubmit}>
-					<Form.Item
-						label="Name"
-						name="name"
-						rules={[
-							{
-								required: true,
-								message: 'Please enter your name',
-							},
-						]}
-					>
-						<Input placeholder="Your name" />
-					</Form.Item>
-
-					<Form.Item label="Avatar">
-						<Upload
-							listType="picture-card"
-							maxCount={1}
-							fileList={avatarFileList}
-							beforeUpload={async (file) => {
-								try {
-									const res =
-										await userApi.getAvatarUploadUrl({
-											fileName: file.name,
-											fileSize: file.size,
-											contentType:
-												file.type || 'image/jpeg',
-										});
-
-									const uploadUrl = res.data?.uploadUrl;
-									const avatarUrl = res.data?.avatarUrl;
-
-									if (!uploadUrl || !avatarUrl) {
-										throw new Error(
-											'Failed to get upload URL',
-										);
-									}
-
-									await fetch(uploadUrl, {
-										method: 'PUT',
-										body: file,
-										headers: {
-											'Content-Type': file.type,
-										},
-									});
-
-									form.setFieldValue('avatar', avatarUrl);
-									setAvatarFileList([
-										{
-											uid: '-1',
-											name: file.name,
-											status: 'done',
-											url: avatarUrl,
-										},
-									]);
-									message.success(
-										'Avatar uploaded successfully',
-									);
-								} catch (error) {
-									message.error('Failed to upload avatar');
-								}
-								return false;
-							}}
-							onRemove={() => {
-								form.setFieldValue('avatar', null);
-								setAvatarFileList([]);
-								message.info(
-									'Avatar will be removed when you save',
-								);
-							}}
-						>
-							{avatarFileList.length === 0 && (
-								<div>
-									<UploadOutlined />
-									<div style={{ marginTop: 8 }}>Upload</div>
-								</div>
-							)}
-						</Upload>
-						<Form.Item name="avatar" hidden>
-							<Input />
-						</Form.Item>
-					</Form.Item>
-
-					<Form.Item
-						label="Trash Retention Days"
-						name="trashRetentionDays"
-						extra={`Leave empty to use system default (${systemDefault} days). Files will be permanently deleted after this many days in trash.`}
-					>
-						<InputNumber
-							min={1}
-							max={365}
-							className="w-full"
-							placeholder={`${systemDefault} (System Default)`}
-						/>
-					</Form.Item>
-
-					<Form.Item>
-						<div className="flex gap-2">
-							<Button
-								type="primary"
-								htmlType="submit"
-								loading={updating}
-							>
-								Save Changes
-							</Button>
-							<Button
-								onClick={() => {
-									setIsEditing(false);
-									form.setFieldsValue({
-										name: user.name,
-										avatar: user.avatar,
-										trashRetentionDays:
-											user.trashRetentionDays,
-									});
-									if (user.avatar) {
-										setAvatarFileList([
-											{
-												uid: '-1',
-												name: 'avatar',
-												status: 'done',
-												url: user.avatar,
-											},
-										]);
-									} else {
-										setAvatarFileList([]);
-									}
-								}}
-							>
-								Cancel
-							</Button>
-						</div>
-					</Form.Item>
-				</Form>
-			)}
+				</Form.Item>
+			</Form>
 		</Card>
 	);
 
 	const storageContent = storage && (
 		<div className="storage-container">
-			<Card className="storage-card">
-				<div className="storage-header">
-					<svg
-						width="64"
-						height="64"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						className="storage-icon"
-					>
-						<rect x="2" y="2" width="20" height="8" rx="1" ry="1" />
-						<rect
-							x="2"
-							y="14"
-							width="20"
-							height="8"
-							rx="1"
-							ry="1"
-						/>
-						<line x1="6" y1="6" x2="6" y2="6.01" />
-						<line x1="6" y1="18" x2="6" y2="18.01" />
-					</svg>
-					<div className="storage-info">
-						<h2>Storage ({storage.percentage}% full)</h2>
-						<div className="progress-bar">
-							<div
-								className="progress-fill"
-								style={{ width: `${storage.percentage}%` }}
-							/>
-						</div>
-						<div className="storage-details">
-							<div>
-								<span className="label">Used</span>
-								<span className="value">
-									{formatBytes(storage.used)}
-								</span>
-							</div>
-							<div>
-								<span className="label">Available</span>
-								<span className="value">
-									{formatBytes(storage.available)}
-								</span>
-							</div>
-							<div>
-								<span className="label">Total</span>
-								<span className="value">
-									{formatBytes(storage.totalLimit)}
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</Card>
-
-			<Card className="breakdown-card">
-				<h3>Storage Breakdown</h3>
-				<div className="breakdown-bar">
-					<div
-						className="base-fill"
-						style={{
-							width: `${(storage.baseLimit / storage.totalLimit) * 100}%`,
-						}}
-					/>
-					{storage.bonusLimit > 0 && (
-						<div
-							className="bonus-fill"
-							style={{
-								width: `${(storage.bonusLimit / storage.totalLimit) * 100}%`,
-							}}
-						/>
-					)}
-				</div>
-				<div className="breakdown-legend">
-					<div className="legend-item">
-						<span
-							className="legend-color"
-							style={{ backgroundColor: '#2563eb' }}
-						/>
-						<span>Base Storage</span>
-						<span className="legend-value">
-							{formatBytes(storage.baseLimit)}
+			<Card className="storage-overview-card">
+				<div className="storage-overview">
+					<div className="storage-header">
+						<h2>Storage Usage</h2>
+						<span className="storage-percentage">
+							{storage.percentage}% used
 						</span>
 					</div>
+
+					<div className="progress-bar">
+						<div
+							className="progress-fill"
+							style={{ width: `${storage.percentage}%` }}
+						/>
+					</div>
+
+					<div className="storage-summary">
+						<span className="storage-text">
+							{formatBytes(storage.used)} of{' '}
+							{formatBytes(storage.totalLimit)} used
+						</span>
+						<span className="storage-available">
+							{formatBytes(storage.available)} available
+						</span>
+					</div>
+
 					{storage.bonusLimit > 0 && (
-						<div className="legend-item">
-							<span
-								className="legend-color"
-								style={{ backgroundColor: '#10b981' }}
-							/>
-							<span>Bonus Storage</span>
-							<span className="legend-value">
-								{formatBytes(storage.bonusLimit)}
-							</span>
+						<div className="storage-breakdown">
+							<div className="breakdown-item">
+								<span className="breakdown-dot base"></span>
+								<span>
+									Base: {formatBytes(storage.baseLimit)}
+								</span>
+							</div>
+							<div className="breakdown-item">
+								<span className="breakdown-dot bonus"></span>
+								<span>
+									Bonus: {formatBytes(storage.bonusLimit)}
+								</span>
+							</div>
 						</div>
 					)}
 				</div>
