@@ -6,7 +6,7 @@ import {
 	type CheckoutResponse,
 } from '@/types/payment.types';
 import { CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Divider, Modal, Spin, Typography } from 'antd';
+import { Alert, Card, Divider, Modal, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 
 const { Title, Text, Paragraph } = Typography;
@@ -55,10 +55,24 @@ export default function PaymentModal({
 		try {
 			const response = await paymentApi.checkout({ planId });
 
-			// Open payment URL in new tab
-			if (response.paymentInfo.paymentUrl) {
-				window.open(response.paymentInfo.paymentUrl, '_blank');
-			}
+			// Create and auto-submit form to SePay
+			const form = document.createElement('form');
+			form.method = 'POST';
+			form.action = response.checkoutUrl;
+			form.style.display = 'none';
+
+			// Add form fields
+			Object.entries(response.formData).forEach(([key, value]) => {
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = key;
+				input.value = value;
+				form.appendChild(input);
+			});
+
+			document.body.appendChild(form);
+			form.submit();
+			document.body.removeChild(form);
 
 			// Start polling for payment status
 			startPolling(response.transactionId);
@@ -177,23 +191,6 @@ export default function PaymentModal({
 								<Paragraph>
 									Vui lòng hoàn tất thanh toán trên tab đã mở
 								</Paragraph>
-
-								{paymentData.paymentInfo.paymentUrl && (
-									<Button
-										type="primary"
-										size="large"
-										onClick={() =>
-											window.open(
-												paymentData.paymentInfo
-													.paymentUrl,
-												'_blank',
-											)
-										}
-										style={{ marginTop: 16 }}
-									>
-										Mở lại trang thanh toán
-									</Button>
-								)}
 							</div>
 
 							<Divider />
@@ -236,18 +233,6 @@ export default function PaymentModal({
 									<Text>
 										{paymentData.subscription.durationDays}{' '}
 										ngày
-									</Text>
-								</div>
-								<div
-									style={{
-										display: 'flex',
-										justifyContent: 'space-between',
-										marginBottom: 8,
-									}}
-								>
-									<Text strong>Nội dung:</Text>
-									<Text type="secondary">
-										{paymentData.paymentInfo.description}
 									</Text>
 								</div>
 							</div>

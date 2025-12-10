@@ -7,17 +7,8 @@ export interface CheckoutRequest {
 export interface CheckoutResponse {
 	status: string;
 	transactionId: string;
-	paymentInfo: {
-		checkoutUrl?: string;
-		checkoutFields?: Record<string, any>;
-		qrCodeData: string;
-		description: string;
-		bankInfo: {
-			bankName: string;
-			accountNumber: string;
-			accountName: string;
-		};
-	};
+	checkoutUrl: string;
+	formData: Record<string, string>;
 	subscription: {
 		id: string;
 		planName: string;
