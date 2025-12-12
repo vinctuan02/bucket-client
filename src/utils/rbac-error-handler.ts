@@ -115,9 +115,13 @@ export function getRedirectPathForReason(
 			if (userRoles.includes('Sale')) {
 				return '/plans';
 			}
-			return '/home';
+			if (userRoles.includes('sale_nv1')) {
+				return '/plans';
+			}
+
+			return '/profile';
 
 		default:
-			return '/home';
+			return '/profile';
 	}
 }

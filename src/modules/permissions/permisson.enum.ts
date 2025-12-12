@@ -37,6 +37,7 @@ export enum Resource {
 	PERMISSION = 'PERMISSION',
 	SUBSCRIPTION = 'SUBSCRIPTION',
 	APP_CONFIG = 'APP_CONFIG',
+	DASHBOARD = 'DASHBOARD',
 
 	// Tài nguyên Người dùng
 	PLAN = 'PLAN',

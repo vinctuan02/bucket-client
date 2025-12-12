@@ -8,6 +8,7 @@ import {
 	CreditCard,
 	Folder,
 	KeyRound,
+	LayoutDashboard,
 	Settings,
 	Share2,
 	Shield,
@@ -32,6 +33,13 @@ interface SidebarItem {
 }
 
 const sidebarNavItems: SidebarItem[] = [
+	{
+		display: 'Dashboard',
+		icon: <LayoutDashboard size={18} strokeWidth={2.5} />,
+		to: '/dashboard',
+		section: 'dashboard',
+		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
+	},
 	{
 		display: 'Home',
 		icon: <Folder size={18} strokeWidth={2.5} />,
@@ -86,8 +94,15 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <CreditCard size={18} strokeWidth={2.5} />,
 		to: '/payment',
 		section: 'payment',
-		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
+		requiredPermission: APP_PERMISSIONS.READ_SUBSCRIPTION,
 	},
+	// {
+	// 	display: 'Payment History',
+	// 	icon: <History size={18} strokeWidth={2.5} />,
+	// 	to: '/payment/history',
+	// 	section: 'payment',
+	// 	requiredPermission: APP_PERMISSIONS.READ_SUBSCRIPTION,
+	// },
 	{
 		display: 'Shared With Me',
 		icon: <Share2 size={18} strokeWidth={2.5} />,
