@@ -54,6 +54,14 @@ export const permissionDefault: Partial<Permission> = {
 };
 
 export const APP_PERMISSIONS = {
+	// --- DASHBOARD (Quản lý Dashboard) ---
+	READ_DASHBOARD: {
+		name: 'Read Dashboard',
+		action: PermissionAction.READ,
+		resource: Resource.DASHBOARD,
+		description: 'Allow viewing dashboard analytics and metrics',
+	},
+
 	// --- USER (Quản trị Người dùng) ---
 	CREATE_USER: {
 		name: 'Create User',

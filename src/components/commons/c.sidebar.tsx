@@ -38,7 +38,7 @@ const sidebarNavItems: SidebarItem[] = [
 		icon: <LayoutDashboard size={18} strokeWidth={2.5} />,
 		to: '/dashboard',
 		section: 'dashboard',
-		requiredPermission: APP_PERMISSIONS.READ_FILE_NODE,
+		requiredPermission: APP_PERMISSIONS.READ_DASHBOARD,
 	},
 	{
 		display: 'Home',
